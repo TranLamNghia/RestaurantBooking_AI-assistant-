@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .email-header {
+            background-color: #1a1a1a;
+            color: #d4af37;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .email-header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .email-body {
+            padding: 30px;
+            color: #444;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .reservation-details {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #d4af37;
+        }
+
+        .reservation-details p {
+            margin: 5px 0;
+        }
+
+        .btn-confirm {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background-color: #d4af37;
+            color: #1a1a1a;
+            text-decoration: none;
+            padding: 14px 0;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 25px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-confirm:hover {
+            background-color: #c19b2e;
+        }
+
+        .email-footer {
+            background-color: #f1f1f1;
+            padding: 20px;
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>Spice of Life</h1>
+        </div>
+
+        <div class="email-body">
+            <p>Chào <strong>{{ customer_name }}</strong>,</p>
+            <p>Cảm ơn bạn đã lựa chọn Spice of Life. Chúng tôi đã nhận được yêu cầu đặt bàn của bạn với thông tin như
+                sau:</p>
+
+            <div class="reservation-details">
+                <p><strong>Mã đặt bàn:</strong> #{{ booking_id }}</p>
+                <p><strong>Thời gian:</strong> {{ reservation_time }} | {{ reservation_day }}</p>
+                <p><strong>Khu vực:</strong> {{ preferred_space }}</p>
+                <p><strong>Số khách:</strong> {{ guests }} người</p>
+            </div>
+
+            <p>Để hoàn tất quá trình giữ bàn, vui lòng nhấn vào nút bên dưới để xác nhận thông tin và tiến hành đặt cọc.
+            </p>
+
+            <!-- Link này sau này sẽ trỏ về trang web React của bạn (ví dụ: /payment?id=) -->
+            <a href="https://spiceoflife.demo/deposit?booking_id={{ booking_id }}" class="btn-confirm">XÁC NHẬN & ĐẶT
+                CỌC</a>
+
+            <p style="font-size: 13px; color: #999; margin-top: 25px; text-align: center;">Yêu cầu này sẽ hết hạn sau 24
+                giờ kể từ lúc tạo.</p>
+        </div>
+
+        <div class="email-footer">
+            219 Van Van Thu, D.1, HCMC<br>
+            Hotline: 0988 999 888<br>
+            © 2026 Spice of Life Restaurant
+        </div>
+    </div>
+</body>
+
+</html>

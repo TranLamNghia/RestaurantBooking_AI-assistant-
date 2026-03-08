@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .ticket-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .ticket-header {
+            background-color: #1a1a1a;
+            color: #d4af37;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px dashed #444;
+        }
+
+        .ticket-header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .ticket-body {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .qr-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .qr-img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .info-label {
+            color: #888;
+            font-size: 13px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .info-value {
+            color: #222;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .ticket-footer {
+            background-color: #f9f9f9;
+            padding: 15px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ticket-container">
+        <!-- HEADER -->
+        <div class="ticket-header">
+            <h1>Spice of Life</h1>
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #aaa;">Digital VIP Pass</p>
+        </div>
+
+        <!-- BODY -->
+        <div class="ticket-body">
+            <!-- Khu vực dán thẳng mã Base64 -->
+            <div class="qr-box">
+                <img class="qr-img" src="{{ qr_code_base64 }}" alt="Booking QR Code" />
+            </div>
+
+            <p style="color: #444; font-size: 14px; margin-bottom: 25px;">Hãy quét mã này tại quầy lễ tân khi bạn tới
+                nơi.</p>
+
+            <!-- THÔNG TIN -->
+            <div class="info-row">
+                <span class="info-label">Customer</span>
+                <span class="info-value">{{ customer_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Phone</span>
+                <span class="info-value">{{ customer_phone }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Date & Time</span>
+                <span class="info-value">{{ reservation_time }} | {{ reservation_day }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Space</span>
+                <span class="info-value">{{ preferred_space }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Pre-ordered Food</span>
+                <span class="info-value">{{ has_preorder }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Booking ID</span>
+                <span class="info-value" style="font-family: monospace; color: #d4af37;">#{{ booking_id }}</span>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="ticket-footer">
+            219 Nguyen Van Thu, D.1, HCMC<br>
+            Hotline: 0988 999 888<br>
+            Vui lòng đến đúng giờ để có trải nghiệm tốt nhất.
+        </div>
+    </div>
+</body>
+
+</html>
