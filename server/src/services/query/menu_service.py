@@ -10,7 +10,5 @@ async def get_all_menu_items(db: Session, category: Optional[str] = None, item_t
     
     if category:
         query = query.filter(Menu.category == category)
-    if item_type:
-        query = query.filter(Menu.type == item_type)
         
     return query.all()

@@ -4,9 +4,10 @@ from .base_models import BaseModel
 
 
 class Customer(BaseModel):
-    __tablename__ = "customer"
+    __tablename__ = "Customer"
     
-    name = Column(String(255), nullable=False)
-    email = Column(String(255), nullable=False)
-    phone = Column(String(255), nullable=False)
+    id = Column("customer_id", Integer, primary_key=True, index=True)
+    name = Column("full_name", String(150), nullable=False)
+    email = Column("email", String(150), nullable=True)
+    phone = Column("phone", String(20), nullable=True)
     

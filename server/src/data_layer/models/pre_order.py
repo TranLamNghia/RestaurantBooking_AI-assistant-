@@ -3,18 +3,19 @@ from sqlalchemy import Column, Integer, DateTime, Date, Time, String, ForeignKey
 from .base_models import BaseModel
 
 class PreOrder(BaseModel):
-    __tablename__ = "pre_order"
+    __tablename__ = "PreOrder"
     
-    customer_id = Column(Integer, ForeignKey("customer.id", ondelete="CASCADE"), nullable=False)
-    payment_status = Column(String(10), nullable=False, default="PENDING")
-
-    reservation_day = Column(Date, nullable=False)
-    reservation_time = Column(Time, nullable=False)
-    guests = Column(Integer, nullable=False)
-
-    preferred_space = Column(String(255), nullable=False)
-    occasion = Column(String(255), nullable=True)
-    special_notes = Column(String(255), nullable=True)
-
-    preorder_items = Column(JSON, nullable=True)
+    id = Column("preorder_id", Integer, primary_key=True, index=True)
     
+    customer_id = Column("customer_id", Integer, ForeignKey("Customer.customer_id", ondelete="CASCADE"), nullable=False)
+    payment_status = Column("payment_status", String(10), nullable=True)
+
+    reservation_day = Column("reservation_date", Date, nullable=False)
+    reservation_time = Column("reservation_time", Time, nullable=False)
+    guests = Column("guests", Integer, nullable=False)
+
+    preferred_space = Column("preferred_space", String(50), nullable=True)
+    occasion = Column("occasion", String(100), nullable=True)
+    special_notes = Column("special_notes", String(255), nullable=True)
+
+    preorder_items = Column("preorder_items", JSON, nullable=True)

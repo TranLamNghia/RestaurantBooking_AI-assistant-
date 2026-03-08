@@ -3,7 +3,8 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 from src.data_layer.database import get_db
-from src.services import execution_service, query_service
+from src.services.excution import pre_order_service as execution_service
+from src.services.query import pre_order_service as query_service
 import datetime
 
 router = APIRouter()
@@ -60,32 +61,38 @@ async def create_reservation(reservation: ReservationCreate, db: Session = Depen
 
 @router.get("/availability")
 async def check_availability(
-    date: str = Query(..., description="Ngày đặt bàn (YYYY-MM-DD)"),
-    time: str = Query(..., description="Giờ đặt bàn (HH:MM)"),
-    guests: int = Query(..., description="Số lượng khách"),
+    date: Optional[str] = Query(None, description="Date (YYYY-MM-DD)"),
+    time: Optional[str] = Query(None, description="Time (HH:MM)"),
+    preferred_space: Optional[str] = Query(None, description="Preferred space"),
     db: Session = Depends(get_db)
 ):
     """
-    Kiểm tra xem nhà hàng có còn đủ sức chứa vào ngày/giờ này hay không.
+    Check if the restaurant has enough capacity on the given date and time.
+    Can accept 1, 2, or 3 parameters.
     """
+    res_day, res_time = None, None
     try:
-        res_day = datetime.datetime.strptime(date, "%Y-%m-%d").date()
-        res_time = datetime.datetime.strptime(time, "%H:%M").time()
+        if date:
+            res_day = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+        if time:
+            res_time = datetime.datetime.strptime(time, "%H:%M").time()
     except ValueError:
-        raise HTTPException(status_code=400, detail="Định dạng ngày/giờ không hợp lệ. Ngày: YYYY-MM-DD, Giờ: HH:MM")
+        raise HTTPException(status_code=400, detail="Invalid date or time format. Date: YYYY-MM-DD, Time: HH:MM")
 
-    availability_result = await query_service.query_table_availability(db, res_day, res_time, guests)
+    availability_result = await query_service.query_table_availability(
+        db=db, 
+        reservation_day=res_day, 
+        reservation_time=res_time, 
+        preferred_space=preferred_space
+    )
     
-    if availability_result.get("is_available"):
-        return {"available": True, "message": "Nhà hàng vẫn còn bàn trống."}
-    else:
-        return {"available": False, "message": "Nhà hàng đã hết chỗ vào thời điểm này."}
+    return availability_result
 
 @router.post("/check-deposit")
 async def check_deposit_status(request: DepositCheckRequest, db: Session = Depends(get_db)):
     """
-    Kiểm tra xem khách hàng có SDT này trong ngày hẹn này đã thanh toán tiền cọc (Deposit) chưa.
-    (Dành cho các bàn V.I.P hoặc nhóm đông)
+    Check if the customer has made a deposit for the given phone number and date.
+    (Reserved for VIP tables or large groups)
     """
     has_deposited = await query_service.query_deposit_status(
         db=db, 
@@ -96,5 +103,5 @@ async def check_deposit_status(request: DepositCheckRequest, db: Session = Depen
         "phone": request.phone,
         "date": request.reservation_date,
         "has_deposited": has_deposited,
-        "message": "Khách này đã tồn tại đơn hàng ngày hôm nay trong hệ thống." if has_deposited else "Chưa có thông tin đặt cọc/đơn hàng."
+        "message": "Customer has made a deposit for this phone number and date." if has_deposited else "No deposit found for this phone number and date."
     }
