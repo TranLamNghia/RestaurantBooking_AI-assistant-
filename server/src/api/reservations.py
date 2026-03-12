@@ -29,8 +29,8 @@ class DepositCheckRequest(BaseModel):
 @router.post("/")
 async def create_reservation(reservation: ReservationCreate, db: Session = Depends(get_db)):
     """
-    Tiếp nhận Form đặt bàn (Kèm theo thông tin customer và preorder_items nếu có).
-    Lưu vào Database.
+    Receive table reservation forms (with customer information and preorder_items if any).
+    Save to Database.
     """
     customer_data = {
         "name": reservation.customer_name,
