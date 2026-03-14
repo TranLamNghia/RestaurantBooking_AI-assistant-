@@ -27,6 +27,8 @@ class ToolRegistry:
             Use this when the guest asks about food, drinks, or prices.
             Can filter by `category` (e.g., 'Starters', 'Centrepiece', 'Sidepiece', 'Cocktails — Classics') or `item_type` ('food', 'beverage').
             """
+            print(f"[AI TOOL CALLED] 'check_menu' -> Category: {category} | Type: {item_type}\\n{'='*40}\\n")
+            
             try:
                 items = await get_all_menu_items(db, category=category, item_type=item_type)
                 if not items:
@@ -46,6 +48,8 @@ class ToolRegistry:
             """
             Check the restaurant's table availability. ALWAYS ask the guest for the DATE before calling this function.
             """
+            print(f"[AI TOOL CALLED] 'check_availability' -> Date: {date} | Time: {time} | Space: {preferred_space}\\n{'='*40}\\n")
+            
             res_day, res_time = None, None
             try:
                 if date:
@@ -66,6 +70,8 @@ class ToolRegistry:
             """
             Check the customer's deposit payment status.
             """
+            print(f"[AI TOOL CALLED] 'check_deposit' -> Phone: {phone} | Email: {email}\\n{'='*40}\\n")
+            
             try:
                 has_deposited = await query_deposit_status(db, phone=phone, email=email or "")
                 if has_deposited:

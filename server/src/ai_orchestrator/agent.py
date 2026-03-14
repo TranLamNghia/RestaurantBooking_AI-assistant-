@@ -1,51 +1,48 @@
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import AgentExecutor, create_tool_calling_agent
-from langchain_core.runnables.history import RunnableWithMessageHistory
+from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import MemorySaver
 from sqlalchemy.orm import Session
 
 # Import modular components
-from src.ai_orchestrator.prompts import get_agent_prompt
+from src.ai_orchestrator.prompts import SYSTEM_PROMPT
 from src.ai_orchestrator.tool_registry import ToolRegistry
-from src.ai_orchestrator.context_manager import context_manager
 from src.ai_orchestrator.parser import ChatParser
+
+# Global memory saver for LangGraph checkpointer
+memory = MemorySaver()
 
 async def handle_user_message(db: Session, session_id: str, message: str) -> str:
     """
-    Hàm điều phối vòng lặp (Reasoning Loop) chính của AI Agent.
+    Hàm điều phối vòng lặp (Reasoning Loop) chính của AI Agent sử dụng LangGraph.
     """
     # 1. Khởi tạo LLM Gemini
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7)
+    llm = ChatGoogleGenerativeAI(model="gemini-3-flash-preview", temperature=0.7)
     
     # 2. Lấy danh sách Tools từ Registry
     tools = ToolRegistry.get_tools(db)
     
-    # 3. Lấy Prompt Template
-    prompt = get_agent_prompt()
-    
-    # 4. Tạo Agent & Executor (Loop orchestration) sử dụng tool calling chuẩn
-    agent = create_tool_calling_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-    
-    # 5. Gắn Memory (Context Manager) vào Agent
-    agent_with_chat_history = RunnableWithMessageHistory(
-        agent_executor,
-        context_manager.get_session_history,
-        input_messages_key="input",
-        history_messages_key="chat_history",
+    # 3. Tạo Agent bằng LangGraph (thay thế cho AgentExecutor cũ bị deprecated)
+    agent_executor = create_react_agent(
+        model=llm,
+        tools=tools,
+        prompt=SYSTEM_PROMPT,
+        checkpointer=memory
     )
     
     try:
-        # Thực thi reasoning loop
-        response = await agent_with_chat_history.ainvoke(
-            {"input": message},
-            config={"configurable": {"session_id": session_id}}
+        # 4. Thực thi reasoning loop
+        response = await agent_executor.ainvoke(
+            {"messages": [("user", message)]},
+            config={"configurable": {"thread_id": session_id}}
         )
         
-        # 6. Parse / Format dữ liệu đầu ra
-        final_reply = ChatParser.parse_response(response["output"])
+        # 5. Parse / Format dữ liệu đầu ra từ tin nhắn AI cuối cùng
+        last_message = response["messages"][-1].content
+        final_reply = ChatParser.parse_response(last_message)
+        
         return final_reply
         
     except Exception as e:
         print(f"[AI AGENT ERROR] {str(e)}")
-        return "Sorry, the AI system is currently experiencing some issues. Please try again later!"
+        return "Xin lỗi anh/chị, hệ thống AI của em đang gặp chút gián đoạn. Anh/chị vui lòng thử lại sau giây lát ạ!"
