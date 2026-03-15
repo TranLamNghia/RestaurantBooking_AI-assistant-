@@ -14,15 +14,31 @@ memory = MemorySaver()
 
 async def handle_user_message(db: Session, session_id: str, message: str) -> str:
     """
-    Hàm điều phối vòng lặp (Reasoning Loop) chính của AI Agent sử dụng LangGraph.
+    The main function of AI Agent using LangGraph.
     """
-    # 1. Khởi tạo LLM Gemini
-    llm = ChatGoogleGenerativeAI(model="gemini-3-flash-preview", temperature=0.7)
+    # 1. Initialize LLM Gemini with multiple API Key configuration (Fallbacks/Rotation)
+    api_keys_str = os.getenv("GEMINI_API_KEY", "")
+    api_keys = [k.strip() for k in api_keys_str.split(",") if k.strip()]
     
-    # 2. Lấy danh sách Tools từ Registry
+    if api_keys:
+        # Get the first key as the main key
+        llm = ChatGoogleGenerativeAI(model="gemini-3-flash-preview", temperature=0.7, google_api_key=api_keys[0])
+        
+        # If there are 2 or more keys, configure fallback keys
+        if len(api_keys) > 1:
+            fallbacks = [
+                ChatGoogleGenerativeAI(model="gemini-3-flash-preview", temperature=0.7, google_api_key=key)
+                for key in api_keys[1:]
+            ]
+            llm = llm.with_fallbacks(fallbacks)
+            print(f"[AI ORCHESTRATOR] Successfully initialized {len(api_keys)} fallback API Keys.")
+    else:
+        # Fallback in case the environment variable is missing but the cloud environment still has a hidden key
+        llm = ChatGoogleGenerativeAI(model="gemini-3-flash-preview", temperature=0.7)
+    # 2. Get tools from Registry
     tools = ToolRegistry.get_tools(db)
     
-    # 3. Tạo Agent bằng LangGraph (thay thế cho AgentExecutor cũ bị deprecated)
+    # 3. Create Agent using LangGraph (replace the old deprecated AgentExecutor)
     agent_executor = create_react_agent(
         model=llm,
         tools=tools,
@@ -31,13 +47,13 @@ async def handle_user_message(db: Session, session_id: str, message: str) -> str
     )
     
     try:
-        # 4. Thực thi reasoning loop
+        # 4. Execute reasoning loop
         response = await agent_executor.ainvoke(
             {"messages": [("user", message)]},
             config={"configurable": {"thread_id": session_id}}
         )
         
-        # 5. Parse / Format dữ liệu đầu ra từ tin nhắn AI cuối cùng
+        # 5. Parse / Format output data from the last AI message
         last_message = response["messages"][-1].content
         final_reply = ChatParser.parse_response(last_message)
         
@@ -45,4 +61,4 @@ async def handle_user_message(db: Session, session_id: str, message: str) -> str
         
     except Exception as e:
         print(f"[AI AGENT ERROR] {str(e)}")
-        return "Xin lỗi anh/chị, hệ thống AI của em đang gặp chút gián đoạn. Anh/chị vui lòng thử lại sau giây lát ạ!"
+        return "Sorry, the AI system is currently experiencing some issues. Please try again later!"
