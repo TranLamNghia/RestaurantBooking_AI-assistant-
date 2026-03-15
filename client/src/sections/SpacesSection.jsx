@@ -53,7 +53,7 @@ const spaces = [
         desc: 'From milestone birthdays to lavish product launches — our grand event hall transforms to suit every vision you hold.',
         capacity: 'Grand Parties',
         mood: 'Events · Gala · Birthdays',
-        img: 'https://images.unsplash.com/photo-1519671282429-b8d64e4d0e17?w=900&q=80',
+        img: 'https://images.unsplash.com/photo-1759477274116-e3cb02d2b9d8?q=80&w=1631',
         flip: false,
     },
     {

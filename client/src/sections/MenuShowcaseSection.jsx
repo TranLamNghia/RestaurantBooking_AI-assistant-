@@ -25,24 +25,6 @@ const MENU_CARDS = [
         badge: null,
         group: 'alacarte',
     },
-    {
-        id: 'lunch',
-        title: 'Lunch',
-        label: 'LUNCH • LUNCH • LUNCH •',
-        img: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=800&q=80',
-        desc: 'Three-course set menus for the discerning afternoon diner',
-        badge: '$24++',
-        group: 'sets',
-    },
-    {
-        id: 'dinner',
-        title: 'Dinner',
-        label: 'DINNER • DINNER • DINNER •',
-        img: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
-        desc: 'A four-course heritage set crafted for the art of evening',
-        badge: '$68++',
-        group: 'sets',
-    },
 ]
 
 // ─── Circular SVG text ────────────────────────────────────────────────────────
@@ -56,16 +38,16 @@ function CircularText({ text }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: 5, pointerEvents: 'none',
         }}>
-            <svg viewBox="0 0 300 300" style={{
-                width: '78%', height: '78%',
+            <svg viewBox="0 0 200 200" style={{
+                width: '40%', height: '40%',
                 animation: 'rotateSlow 20s linear infinite',
                 position: 'absolute',
                 filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.85))',
             }} overflow="visible">
                 <defs>
-                    <path id={id} d={`M 150,150 m -${radius},0 a ${radius},${radius} 0 1,1 ${radius * 2},0 a ${radius},${radius} 0 1,1 -${radius * 2},0`} />
+                    <path id={id} d={`M 100,100 m -${radius},0 a ${radius},${radius} 0 1,1 ${radius * 2},0 a ${radius},${radius} 0 1,1 -${radius * 2},0`} />
                 </defs>
-                <circle cx="150" cy="150" r={radius} fill="none" stroke={GOLD} strokeWidth="1.2" strokeDasharray="3 7" opacity="0.6" />
+                <circle cx="100" cy="100" r={radius} fill="none" stroke={GOLD} strokeWidth="1.2" strokeDasharray="3 7" opacity="0.6" />
                 <text style={{ fontSize: '30px', fontFamily: 'var(--font-display)', fill: GOLD, letterSpacing: '2px', fontWeight: 400 }}>
                     <textPath href={`#${id}`} textLength={2 * Math.PI * radius} lengthAdjust="spacing">{text}</textPath>
                 </text>
@@ -73,8 +55,8 @@ function CircularText({ text }) {
             {/* Non-rotating + */}
             <div style={{
                 position: 'relative', zIndex: 10,
-                fontSize: '72px', lineHeight: 1,
-                color: GOLD, fontWeight: 100,
+                fontSize: '50px', lineHeight: 1,
+                color: GOLD, fontWeight: 50,
                 fontFamily: 'var(--font-display)',
                 textShadow: '0 4px 20px rgba(0,0,0,0.9)',
                 userSelect: 'none',
@@ -163,67 +145,18 @@ export default function MenuShowcaseSection() {
                     </p>
                 </div>
 
-                {/* ── Cards row with vertical labels and divider ── */}
+                {/* ── Cards row ── */}
                 <div style={{ position: 'relative' }}>
 
-                    {/* ── Top Labels (Centered over each group) ── */}
+                    {/* Cards flex row */}
                     <div style={{
                         display: 'flex',
-                        paddingLeft: '2.8rem',
-                        paddingRight: '2.8rem',
-                        marginBottom: '1rem',
-                        alignItems: 'center',
-                    }}>
-                        {/* Alacarte Label spanning 50% (Food + Beverages + gap) */}
-                        <div style={{ flex: 1, textAlign: 'center' }}>
-                            <span style={{
-                                fontFamily: 'var(--font-display)',
-                                fontSize: '0.65rem',
-                                letterSpacing: '0.35em',
-                                textTransform: 'uppercase',
-                                color: 'rgba(201,168,76,0.55)',
-                                userSelect: 'none',
-                            }}>ALACARTE</span>
-                        </div>
-                        {/* The center gap: 37px spacer to align perfectly with the divider */}
-                        <div style={{ width: '37px', flexShrink: 0 }} />
-                        {/* Experience Sets Label spanning 50% (Lunch + Dinner + gap) */}
-                        <div style={{ flex: 1, textAlign: 'center' }}>
-                            <span style={{
-                                fontFamily: 'var(--font-display)',
-                                fontSize: '0.65rem',
-                                letterSpacing: '0.35em',
-                                textTransform: 'uppercase',
-                                color: 'rgba(201,168,76,0.55)',
-                                userSelect: 'none',
-                            }}>EXPERIENCE SETS</span>
-                        </div>
-                    </div>
-
-                    {/* Cards flex row — a=18px gap, centre gap = 2a+1px */}
-                    <div style={{
-                        display: 'flex',
+                        gap: '2rem',
                         paddingLeft: '2.8rem',
                         paddingRight: '2.8rem',
                     }}>
                         {MENU_CARDS.map((cat, i) => (
                             <React.Fragment key={cat.id}>
-                                {/* Spacers: a=18px before Beverages and Dinner, 2a+1px divider before Lunch */}
-                                {i === 1 && (
-                                    <div style={{ width: '18px', flexShrink: 0 }} />
-                                )}
-                                {i === 2 && (
-                                    /* Before Lunch: a + 1px white line + a */
-                                    <div style={{ display: 'flex', alignItems: 'stretch', flexShrink: 0, width: '37px' }}>
-                                        <div style={{ flex: 1 }} />
-                                        <div style={{ width: '1px', background: 'linear-gradient(to bottom, transparent 5%, rgba(255,255,255,0.18) 25%, rgba(255,255,255,0.18) 75%, transparent 95%)' }} />
-                                        <div style={{ flex: 1 }} />
-                                    </div>
-                                )}
-                                {i === 3 && (
-                                    <div style={{ width: '18px', flexShrink: 0 }} />
-                                )}
-
                                 {/* Card */}
                                 <div
                                     key={cat.id}
@@ -288,8 +221,8 @@ export default function MenuShowcaseSection() {
                                         </h3>
                                         <p style={{
                                             fontFamily: 'var(--font-elegant)',
-                                            fontSize: '0.85rem',
-                                            color: 'rgba(245,240,232,0.52)',
+                                            fontSize: '1rem',
+                                            color: 'rgba(255, 255, 255, 0.52)',
                                             fontStyle: 'italic',
                                             marginBottom: '1rem',
                                             lineHeight: 1.5,
@@ -298,10 +231,10 @@ export default function MenuShowcaseSection() {
                                         </p>
                                         <div style={{
                                             fontFamily: 'var(--font-display)',
-                                            fontSize: '0.48rem',
-                                            letterSpacing: '0.3em',
+                                            fontSize: '0.6rem',
+                                            letterSpacing: '0.2em',
                                             textTransform: 'uppercase',
-                                            color: 'rgba(201,168,76,0.7)',
+                                            color: 'rgba(255, 187, 0, 0.7)',
                                             display: 'flex', alignItems: 'center', gap: '0.6rem',
                                         }}>
                                             View Menu

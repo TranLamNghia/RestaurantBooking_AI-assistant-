@@ -1,142 +1,77 @@
-﻿import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
+import { marked } from 'marked'
 import Flatpickr from 'react-flatpickr'
 import 'flatpickr/dist/themes/dark.css'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-const LUNCH_SET = {
-    label: 'Lunch Set',
-    price: 24,
-    steps: [
-        {
-            key: 'starter', label: 'Choose Your Starter',
-            items: [
-                { id: 'l-s1', name: 'Charred Watermelon', desc: 'Paneer Â· Romesco Â· Pistachio', surcharge: null },
-                { id: 'l-s2', name: 'Brussels Sprouts', desc: 'Szechuan Sauce Â· Cashew Nuts', surcharge: null },
-                { id: 'l-s3', name: 'Chicken Wings', desc: 'Korean or Soy Honey', surcharge: null },
-                { id: 'l-s4', name: 'Crispy Eggplant', desc: 'Thai Chilli Â· Greek Yoghurt', surcharge: null },
-                { id: 'l-s5', name: 'Prawn Dumplings', desc: 'Water Chestnut Â· Coconut Broth', surcharge: 2 },
-                { id: 'l-s6', name: 'Soft Shell Crab', desc: 'Chilli Crab Sauce Â· Fried Mantou', surcharge: 6 },
-            ],
-        },
-        {
-            key: 'main', label: 'Choose Your Main',
-            items: [
-                { id: 'l-m1', name: 'Smoked Salmon Pita', desc: 'With Fries', surcharge: null },
-                { id: 'l-m2', name: 'Baos (2 pcs)', desc: 'Pork / Fish / Tofu — Lotus Buns', surcharge: null },
-                { id: 'l-m3', name: 'Truffle Salted Egg Pasta', desc: 'Mushrooms Â· Curry Leaves Â· Cream', surcharge: null },
-                { id: 'l-m4', name: 'Squid Ink Vongole', desc: 'Clams Â· White Wine Â· Chilli', surcharge: null },
-                { id: 'l-m5', name: 'Braised Beef Fettuccine', desc: '12-hour Five-spice Beef Â· Parmesan', surcharge: null },
-                { id: 'l-m6', name: 'Rice Bowl', desc: 'Prawn / Pork / Satay Chicken / Tofu', surcharge: 3 },
-                { id: 'l-m7', name: 'NZ Ribeye Rice Bowl', desc: '300g Â· Fragrant Rice', surcharge: 8 },
-            ],
-        },
-        {
-            key: 'dessert', label: 'Choose Your Dessert',
-            items: [
-                { id: 'l-d1', name: 'Churros', desc: 'Kaya Dipping Sauce', surcharge: null },
-                { id: 'l-d2', name: 'Lemon Tart', desc: '', surcharge: 2 },
-                { id: 'l-d3', name: 'Choc Lava Cake', desc: '', surcharge: 3 },
-            ],
-        },
-    ],
+import { menuData } from './FoodMenuPage'
+
+const ALACARTE_FOOD = menuData.food.sections.flatMap((s, sIdx) => s.items.map((i, iIdx) => ({ id: `f_${sIdx}_${iIdx}`, cat: s.heading, subCategory: s.subCategory, ...i })))
+const ALACARTE_BEVERAGES = menuData.beverages.sections.flatMap((s, sIdx) => s.items.map((i, iIdx) => ({ id: `b_${sIdx}_${iIdx}`, cat: s.heading, subCategory: s.subCategory, ...i })))
+
+const TumblerIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 8l1 12c.1.9 1 1.5 2 1.5h8c1 0 1.9-.6 2-1.5l1-12"></path>
+        <path d="M4 8h16"></path>
+        <path d="M9 12h2v2H9z"></path>
+        <path d="M13 14h2v2h-2z"></path>
+        <path d="M12 9A3 3 0 009 6a3 3 0 013-3"></path>
+    </svg>
+)
+
+const WineGlassIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 15v6"></path>
+        <path d="M9 21h6"></path>
+        <path d="M5 7c0 4.4 3.6 8 7 8s7-3.6 7-8-3.1-5-7-5-7 .6-7 5z"></path>
+        <path d="M5 7h14"></path>
+        <path d="M7 11c1.5 1 3 1 5 0s3.5-1 5 0"></path>
+    </svg>
+)
+
+const BottleIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 2v6l-2 4v10a2 2 0 002 2h4a2 2 0 002-2V12l-2-4V2"></path>
+        <path d="M10 2h4"></path>
+    </svg>
+)
+
+const getSubCategoryIcons = (sub) => {
+    if (!sub) return null;
+    const s = sub.toLowerCase();
+
+    if (s === 'draught') {
+        return (
+            <>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '0.2rem', fontFamily: 'var(--font-display)', fontSize: '0.55rem', color: 'rgba(201,168,76,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}>300ML</div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '0.2rem', fontFamily: 'var(--font-display)', fontSize: '0.55rem', color: 'rgba(201,168,76,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}>500ML</div>
+            </>
+        )
+    }
+
+    let LeftIcon = null;
+    let RightIcon = BottleIcon;
+
+    if (['gin', 'vodka', 'rum', 'bourbon', 'tequila'].includes(s)) {
+        LeftIcon = TumblerIcon;
+    } else if (['whiskey', 'bubbles', 'whites', 'reds', 'red', 'white'].includes(s)) {
+        LeftIcon = WineGlassIcon;
+    }
+
+    if (LeftIcon) {
+        return (
+            <>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '0.15rem', color: 'rgba(201,168,76,0.45)' }}><LeftIcon /></div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '0.15rem', color: 'rgba(201,168,76,0.45)' }}><RightIcon /></div>
+            </>
+        )
+    }
+
+    return null;
 }
-
-const DINNER_SET = {
-    label: 'Heritage Dinner Set',
-    price: 68,
-    steps: [
-        {
-            key: 'starter', label: 'Choose Your Starter',
-            items: [
-                { id: 'd-s1', name: 'Crispy Eggplant', desc: 'Thai Chilli Â· Greek Yoghurt', surcharge: null },
-                { id: 'd-s2', name: 'Charred Watermelon', desc: 'Paneer Â· Romesco Â· Pistachio', surcharge: null },
-                { id: 'd-s3', name: 'Brussels Sprouts', desc: 'Szechuan Sauce Â· Cashew Nuts', surcharge: null },
-                { id: 'd-s4', name: 'Chicken Mid Wings', desc: 'Korean or Soy Honey', surcharge: null },
-                { id: 'd-s5', name: 'Prawn Dumplings', desc: 'Water Chestnut Â· Coconut Broth', surcharge: 4 },
-                { id: 'd-s6', name: 'Soft Shell Crab', desc: 'Chilli Crab Sauce Â· Fried Mantou', surcharge: 4 },
-                { id: 'd-s7', name: 'Sticky Pork Ribs', desc: 'Hoisin Glaze Â· Sesame Â· Pickled Cabbage', surcharge: 4 },
-            ],
-        },
-        {
-            key: 'main', label: 'Choose Your Signature Piece',
-            items: [
-                { id: 'd-m1', name: 'Pan Seared Halibut', desc: 'Saffron Cream Â· Clams Â· Bok Choy', surcharge: null },
-                { id: 'd-m2', name: 'Squid Ink Vongole', desc: 'Clams Â· White Wine Â· Chilli Â· Parsley', surcharge: null },
-                { id: 'd-m3', name: 'Chicken Rice', desc: 'Poached Chicken Â· Fragrant Rice Â· Chilli Sauce', surcharge: null },
-                { id: 'd-m4', name: 'Chicken Satay', desc: 'Turmeric Chicken Â· Peanut Sauce Â· Polenta', surcharge: null },
-                { id: 'd-m5', name: 'Miso Risotto', desc: 'Edamame Â· Shiitake Â· Sous-vide Egg', surcharge: null },
-                { id: 'd-m6', name: 'Truffle Salted Egg Pasta', desc: 'Mushrooms Â· Curry Leaves Â· Cream', surcharge: null },
-                { id: 'd-m7', name: 'Char Kway Teow', desc: 'Crayfish Â· Clams Â· Noodles Â· Shallots', surcharge: 6 },
-                { id: 'd-m8', name: 'Braised Beef Fettuccine', desc: '12-hour Five-spice Beef Â· Parmesan', surcharge: 6 },
-                { id: 'd-m9', name: 'NZ Ribeye 300g', desc: 'Baby Potatoes Â· Pickled Cabbage', surcharge: 12 },
-            ],
-        },
-        {
-            key: 'side', label: 'Choose Your Side',
-            items: [
-                { id: 'd-si1', name: 'Rosemary Baby Potatoes', desc: 'Served with Aioli', surcharge: null },
-                { id: 'd-si2', name: 'Polenta Fries', desc: '', surcharge: null },
-                { id: 'd-si3', name: 'Truffle Fries', desc: 'Truffle Oil Â· Parmesan', surcharge: 2 },
-                { id: 'd-si4', name: 'Mentaiko Fries', desc: 'Mentaiko Mayo Â· Bonito Flakes', surcharge: 2 },
-            ],
-        },
-        {
-            key: 'dessert', label: 'Choose Your Sweet Ending',
-            items: [
-                { id: 'd-d1', name: 'Coconut Panna Cotta', desc: '', surcharge: null },
-                { id: 'd-d2', name: 'Lemon Passionfruit Tart', desc: '', surcharge: null },
-                { id: 'd-d3', name: 'Churros', desc: 'Kaya Dipping Sauce', surcharge: null },
-                { id: 'd-d4', name: 'Chocolate Lava Cake', desc: '', surcharge: 4 },
-                { id: 'd-d5', name: 'Gelato', desc: 'Brownie Â· Hazelnut Â· Caramel', surcharge: 2 },
-            ],
-        },
-    ],
-}
-
-// ─── À La Carte data for pre-order ──────────────────────────────────────────────
-const ALACARTE_FOOD = [
-    { id: 'f-s1', name: 'Crispy Eggplant', desc: '', price: '$14', cat: 'Starters' },
-    { id: 'f-s2', name: 'Brussels Sprouts', desc: '', price: '$14', cat: 'Starters' },
-    { id: 'f-s3', name: 'Charred Watermelon', desc: '', price: '$12', cat: 'Starters' },
-    { id: 'f-s4', name: 'Chicken Mid Wings', desc: '', price: '$16', cat: 'Starters' },
-    { id: 'f-s5', name: 'Prawn Dumplings', desc: '', price: '$18', cat: 'Starters' },
-    { id: 'f-s6', name: 'Soft Shell Crab', desc: '', price: '$18', cat: 'Starters' },
-    { id: 'f-m1', name: 'NZ Ribeye 300g', desc: '', price: '$46', cat: 'Centrepiece' },
-    { id: 'f-m2', name: 'Chicken Rice', desc: '', price: '$22', cat: 'Centrepiece' },
-    { id: 'f-m3', name: 'Pan Seared Halibut', desc: '', price: '$28', cat: 'Centrepiece' },
-    { id: 'f-m4', name: 'Char Kway Teow', desc: '', price: '$24', cat: 'Centrepiece' },
-    { id: 'f-m5', name: 'Chicken Satay', desc: '', price: '$20', cat: 'Centrepiece' },
-    { id: 'f-p1', name: 'Truffle Salted Egg Pasta', desc: '', price: '$20', cat: 'Pasta' },
-    { id: 'f-p2', name: 'Miso Risotto', desc: '', price: '$20', cat: 'Pasta' },
-    { id: 'f-p3', name: 'Braised Beef Fettuccine', desc: '', price: '$26', cat: 'Pasta' },
-    { id: 'f-p4', name: 'Squid Ink Vongole', desc: '', price: '$26', cat: 'Pasta' },
-    { id: 'f-d1', name: 'Chocolate Lava Cake', desc: '', price: '$16', cat: 'Desserts' },
-    { id: 'f-d2', name: 'Lemon Passionfruit Tart', desc: '', price: '$12', cat: 'Desserts' },
-    { id: 'f-d3', name: 'Coconut Panna Cotta', desc: '', price: '$12', cat: 'Desserts' },
-    { id: 'f-d4', name: 'Churros', desc: '', price: '$12', cat: 'Desserts' },
-    { id: 'f-d5', name: 'Gelato', desc: '', price: '$9', cat: 'Desserts' },
-]
-
-const ALACARTE_BEVERAGES = [
-    { id: 'b-c1', name: 'Old Fashioned', desc: '', price: '$18', cat: 'Classics' },
-    { id: 'b-c2', name: 'Aperol Spritz', desc: '', price: '$18', cat: 'Classics' },
-    { id: 'b-c3', name: 'Moscow Mule', desc: '', price: '$18', cat: 'Classics' },
-    { id: 'b-c4', name: 'Mojito', desc: '', price: '$18', cat: 'Classics' },
-    { id: 'b-c5', name: 'Espresso Martini', desc: '', price: '$20', cat: 'Classics' },
-    { id: 'b-c6', name: 'Negroni', desc: '', price: '$20', cat: 'Classics' },
-    { id: 'b-s1', name: 'Golden Glow', desc: '', price: '$20', cat: 'Signatures' },
-    { id: 'b-s2', name: 'Turkish Mojito', desc: '', price: '$20', cat: 'Signatures' },
-    { id: 'b-s3', name: 'Seoulful Spritz', desc: '', price: '$22', cat: 'Signatures' },
-    { id: 'b-s4', name: 'Mango Margs', desc: '', price: '$22', cat: 'Signatures' },
-    { id: 'b-s5', name: 'Chilli Cha-Cha-Cha!', desc: '', price: '$24', cat: 'Signatures' },
-    { id: 'b-w1', name: 'House Red Wine', desc: '', price: '$12', cat: 'Wine & Beer' },
-    { id: 'b-w2', name: 'House White Wine', desc: '', price: '$12', cat: 'Wine & Beer' },
-    { id: 'b-w3', name: 'Tiger Beer', desc: '', price: '$10', cat: 'Wine & Beer' },
-    { id: 'b-w4', name: 'Heineken', desc: '', price: '$10', cat: 'Wine & Beer' },
-]
 
 const AI_FLOW = [
     {
@@ -161,7 +96,7 @@ const AI_FLOW = [
     },
     {
         trigger: '__date__',
-        response: () => `Noted. And your preferred dining time? We offer lunch (11:30–13:30) and dinner (18:00–21:00).`,
+        response: () => `Noted. And your preferred dining time? We are open continuously from 11:30 to 21:00.`,
         field: 'date',
     },
     {
@@ -246,88 +181,67 @@ export default function ReservationsPage() {
         return () => window.removeEventListener('openAiConcierge', handleOpenAi)
     }, [])
 
-        const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState({
         name: '', email: '', phone: '', date: '',
         time: '', guests: '', space: '', occasion: '', notes: '',
     })
     const [submitted, setSubmitted] = useState(false)
-        const [prixFixeSelections, setPrixFixeSelections] = useState({})
-    const [preOrderStep, setPreOrderStep] = useState(0)
-        const [preOrderMode, setPreOrderMode] = useState(null)        // null = not chosen yet
     const [alacarteTab, setAlacarteTab] = useState('food')        // 'food' | 'beverages'
-    const [alacarteSelected, setAlacarteSelected] = useState(new Set())  // item ids
-    const preOrderPanelRef = useRef(null)
+    const [alacarteSelected, setAlacarteSelected] = useState({})  // { [itemId]: numeric_price_index }
+    const [isPreorderOpen, setIsPreorderOpen] = useState(false)
+    const [openCategories, setOpenCategories] = useState([])
 
-    // Derive which set to show from the selected time
-    const isLunchTime = formData.time && parseInt(formData.time) < 15
-    const activeSet = formData.time ? (isLunchTime ? LUNCH_SET : DINNER_SET) : null
-
-    // Prix fixe total
-    const totalSurcharge = activeSet
-        ? activeSet.steps.reduce((sum, step) => {
-            const sel = prixFixeSelections[step.key]
-            return sum + (sel?.surcharge ?? 0)
-        }, 0)
-        : 0
-    const totalBase = activeSet ? activeSet.price : 0
+    const toggleCategory = (catName) => {
+        setOpenCategories(prev => prev.includes(catName) ? prev.filter(c => c !== catName) : [...prev, catName])
+    }
 
     // À la carte total
-    const alacarteItems = [...alacarteSelected].map(id =>
-        [...ALACARTE_FOOD, ...ALACARTE_BEVERAGES].find(i => i.id === id)
-    ).filter(Boolean)
-    const alacarteTotal = alacarteItems.reduce((sum, i) => sum + parseInt(i.price.replace(/\D/g, '') || '0'), 0)
+    const alacarteItems = Object.keys(alacarteSelected).map(id => {
+        const item = [...ALACARTE_FOOD, ...ALACARTE_BEVERAGES].find(i => i.id === id)
+        if (!item) return null
+        const prices = item.price.split('/').map(p => p.trim())
+        const selectedPrice = prices[alacarteSelected[id]] || prices[0]
+        return { ...item, _selectedPriceStr: selectedPrice }
+    }).filter(Boolean)
 
-    const toggleAlacarteItem = (id) => {
+    const alacarteTotal = alacarteItems.reduce((sum, item) => sum + parseInt(item._selectedPriceStr.replace(/\D/g, '') || '0'), 0)
+
+    const toggleAlacarteItem = (id, priceIndex = 0) => {
         setAlacarteSelected(prev => {
-            const next = new Set(prev)
-            next.has(id) ? next.delete(id) : next.add(id)
+            const next = { ...prev }
+            if (next[id] === priceIndex) {
+                delete next[id]
+            } else {
+                next[id] = priceIndex
+            }
             return next
         })
     }
 
-    const switchPreOrderMode = (modeVal) => {
-        const el = preOrderPanelRef.current
-        // If clicking the same mode again, turn off (hide menu)
-        if (preOrderMode === modeVal) {
-            if (el) {
-                gsap.to(el, { opacity: 0, y: 10, duration: 0.2, ease: 'power2.in', onComplete: () => setPreOrderMode(null) })
-            } else {
-                setPreOrderMode(null)
-            }
-            return
-        }
 
-        if (!el) { setPreOrderMode(modeVal); return }
 
-        gsap.to(el, {
-            opacity: 0, y: 10, duration: 0.2, ease: 'power2.in',
-            onComplete: () => {
-                setPreOrderMode(modeVal)
-                gsap.fromTo(el, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power3.out' })
-            },
-        })
-    }
-
-        const [messages, setMessages] = useState([])
+    const [messages, setMessages] = useState([])
     const [aiInput, setAiInput] = useState('')
     const [isTyping, setIsTyping] = useState(false)
-    const [aiStep, setAiStep] = useState(0)         // index into AI_FLOW
     const [aiStarted, setAiStarted] = useState(false)
+    const [sessionId, setSessionId] = useState(null)
 
-        const chatPanelRef = useRef(null)
+    const chatPanelRef = useRef(null)
     const formPanelRef = useRef(null)
-    const menuDrawerRef = useRef(null)
-    const messagesEndRef = useRef(null)
+    const chatScrollContainerRef = useRef(null)
     const aiInputRef = useRef(null)
 
-    // Auto-scroll chat messages — only after AI chat has started
+    // Auto-scroll chat messages safely without causing window jump
     useEffect(() => {
-        if (messages.length > 0 || isTyping) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        if (chatScrollContainerRef.current) {
+            chatScrollContainerRef.current.scrollTo({
+                top: chatScrollContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            })
         }
     }, [messages, isTyping])
 
-        useEffect(() => {
+    useEffect(() => {
         if (mode === 'ai') {
             // Chat slides in from left
             gsap.fromTo(chatPanelRef.current,
@@ -355,54 +269,59 @@ export default function ReservationsPage() {
         }
     }, [mode])
 
-        const startAI = useCallback(() => {
+    const startAI = useCallback(() => {
         setMode('ai')
         if (!aiStarted) {
             setAiStarted(true)
             setIsTyping(true)
             setTimeout(() => {
                 setIsTyping(false)
-                setMessages([{ role: 'ai', text: AI_FLOW[0].response }])
-                setAiStep(1)
+                setMessages([{ role: 'ai', text: "Hello! I am your AI assistant here to help you reserve your table. Feel free to ask about table availability, our menu, or your deposit status." }])
             }, 900)
         }
-        setTimeout(() => aiInputRef.current?.focus({ preventScroll: true }), 600)
+
+        // Ensure view is scrolled nicely to the interface
+        setTimeout(() => {
+            const rezSection = document.getElementById('reservations')
+            if (rezSection) {
+                const y = rezSection.getBoundingClientRect().top + window.scrollY - 100
+                window.scrollTo({ top: y, behavior: 'smooth' })
+            }
+            aiInputRef.current?.focus({ preventScroll: true })
+        }, 100)
     }, [aiStarted])
 
-        const sendAI = useCallback((text) => {
+    const sendAI = async (text) => {
         if (!text.trim()) return
         const userMsg = { role: 'user', text: text.trim() }
         setMessages(prev => [...prev, userMsg])
         setAiInput('')
         setIsTyping(true)
 
-        const currentStep = AI_FLOW[aiStep]
-        if (!currentStep) return
+        try {
+            const res = await fetch('http://127.0.0.1:5000/api/ai/chat/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text.trim(), session_id: sessionId })
+            });
+            const data = await res.json();
 
-        // Fill the form field for this step
-        const newForm = { ...formData }
-        if (currentStep.field) newForm[currentStep.field] = text.trim()
-        setFormData(newForm)
+            if (data.session_id && !sessionId) {
+                setSessionId(data.session_id);
+            }
 
-        const nextStep = Math.min(aiStep + 1, AI_FLOW.length - 1)
-        const responseText = typeof currentStep.response === 'function'
-            ? currentStep.response(text.trim(), newForm)
-            : currentStep.response
+            setIsTyping(false);
+            setMessages(prev => [...prev, { role: 'ai', text: data.reply }]);
+        } catch (error) {
+            console.error("AI Chat Error:", error);
+            setIsTyping(false);
+            setMessages(prev => [...prev, { role: 'ai', text: "Tôi xin lỗi, hiện tại dịch vụ AI đang bị gián đoạn. Xin vui lòng điền form thủ công nhé!" }]);
+        }
+    }
 
-        setTimeout(() => {
-            setIsTyping(false)
-            setMessages(prev => [...prev, { role: 'ai', text: responseText }])
-            if (!currentStep.done) setAiStep(nextStep)
-        }, 700 + Math.random() * 500)
-    }, [aiStep, formData])
-
-        const handleChange = (e) => {
+    const handleChange = (e) => {
         const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
-        if (name === 'time') {
-            setPrixFixeSelections({})
-            setPreOrderStep(0)
-        }
     }
 
     const handleSubmit = (e) => {
@@ -422,7 +341,7 @@ export default function ReservationsPage() {
         <div style={{ minHeight: '100vh', background: 'var(--color-dark)', color: 'var(--color-cream)' }}>
             <Navbar />
 
-            
+
             <div
                 style={{
                     paddingTop: '120px',
@@ -431,7 +350,30 @@ export default function ReservationsPage() {
                     position: 'relative',
                 }}
             >
-                <div className="section-label" style={{ justifyContent: 'center', marginBottom: '1rem' }}>
+                {/* Back to Homepage Button Top Left */}
+                <div style={{ position: 'absolute', top: '100px', left: '2rem' }}>
+                    <button
+                        onClick={() => navigate('/')}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            fontFamily: 'var(--font-display)', fontSize: '0.55rem',
+                            letterSpacing: '0.2em', textTransform: 'uppercase',
+                            color: 'rgba(245,240,232,0.6)',
+                            background: 'transparent', border: 'none', cursor: 'pointer',
+                            transition: 'color 0.2s',
+                        }}
+                        onMouseEnter={e => { e.target.style.color = 'var(--color-gold)' }}
+                        onMouseLeave={e => { e.target.style.color = 'rgba(245,240,232,0.6)' }}
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        Back to Homepage
+                    </button>
+                </div>
+
+                <div className="section-label" style={{ justifyContent: 'center', margin: '0 0 1rem 0' }}>
                     Reservations
                 </div>
                 <h1
@@ -457,9 +399,26 @@ export default function ReservationsPage() {
                 >
                     Fill the form yourself, or let our AI Concierge guide you.
                 </p>
+
+                {mode === 'form' && (
+                    <div style={{ marginTop: '2.5rem', display: 'flex', justifyContent: 'center' }}>
+                        <button
+                            onClick={startAI}
+                            className="btn-gold"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                animation: 'aiGlow 2.8s ease-in-out infinite',
+                                padding: '0.8rem 2rem',
+                            }}
+                        >
+                            <span style={{ fontSize: '0.9rem' }}>✦</span>
+                            Use AI to Reserve
+                        </button>
+                    </div>
+                )}
             </div>
 
-            
+
             <div
                 id="reservations"
                 style={{
@@ -474,13 +433,13 @@ export default function ReservationsPage() {
                     minHeight: '700px',
                 }}
             >
-                
+
                 <div
                     ref={chatPanelRef}
                     style={{
                         position: mode === 'ai' ? 'relative' : 'absolute',
                         left: mode === 'ai' ? 'auto' : 0,
-                        width: '60%',
+                        width: 'calc(50% - 1rem)',
                         flexShrink: 0,
                         transform: mode === 'ai' ? 'translateX(0)' : 'translateX(-110%)',
                         opacity: mode === 'ai' ? 1 : 0,
@@ -557,6 +516,7 @@ export default function ReservationsPage() {
 
                     {/* Messages */}
                     <div
+                        ref={chatScrollContainerRef}
                         data-lenis-prevent
                         style={{
                             flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem',
@@ -571,9 +531,10 @@ export default function ReservationsPage() {
                             }}>
                                 <div
                                     className={msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'}
-                                    style={{ whiteSpace: 'pre-line', maxWidth: '85%' }}
+                                    dangerouslySetInnerHTML={msg.role === 'ai' ? { __html: marked.parse(msg.text) } : undefined}
+                                    style={{ maxWidth: '85%' }}
                                 >
-                                    {msg.text}
+                                    {msg.role === 'user' ? msg.text : null}
                                 </div>
                             </div>
                         ))}
@@ -588,7 +549,6 @@ export default function ReservationsPage() {
                                 </div>
                             </div>
                         )}
-                        <div ref={messagesEndRef} />
                     </div>
 
                     {/* Input bar */}
@@ -627,13 +587,13 @@ export default function ReservationsPage() {
                     </div>
                 </div>
 
-                
+
                 <div
                     ref={formPanelRef}
                     style={{
                         flex: 1,
                         maxWidth: mode === 'form' ? '680px' : '100%',
-                        width: mode === 'form' ? '100%' : '40%',
+                        width: mode === 'form' ? '100%' : 'calc(50% - 1rem)',
                         margin: mode === 'form' ? '0 auto' : '0',
                         transition: 'max-width 0.5s ease, opacity 0.4s ease',
                         pointerEvents: isFormLocked ? 'none' : 'all',
@@ -687,10 +647,10 @@ export default function ReservationsPage() {
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit}>
-                            
+
                             <div style={{
                                 display: 'grid',
-                                gridTemplateColumns: mode === 'form' ? '1fr 1fr' : '1fr',
+                                gridTemplateColumns: '1fr 1fr',
                                 gap: '1.5rem 2rem',
                                 marginBottom: '1.5rem',
                             }}>
@@ -707,9 +667,9 @@ export default function ReservationsPage() {
                                         style={{ ...INPUT_STYLE_BASE, opacity: isFormLocked ? 0.7 : 1 }} />
                                 </Field>
                                 {/* Phone */}
-                                <Field label="Phone Number">
+                                <Field label="Phone Number *">
                                     <input type="tel" name="phone" value={formData.phone} onChange={handleChange}
-                                        placeholder="+65 XXXX XXXX" disabled={isFormLocked}
+                                        placeholder="+65 XXXX XXXX" required disabled={isFormLocked}
                                         style={{ ...INPUT_STYLE_BASE, opacity: isFormLocked ? 0.7 : 1 }} />
                                 </Field>
                                 {/* Guests */}
@@ -760,9 +720,9 @@ export default function ReservationsPage() {
                                     </select>
                                 </Field>
                                 {/* Space */}
-                                <Field label="Preferred Seating">
+                                <Field label="Preferred Seating *">
                                     <select name="space" value={formData.space} onChange={handleChange}
-                                        disabled={isFormLocked}
+                                        required disabled={isFormLocked}
                                         style={{ ...SELECT_STYLE_BASE, opacity: isFormLocked ? 0.7 : 1 }}>
                                         <option value="" style={{ background: '#0d0b08' }}>No preference</option>
                                         <option value="outdoor" style={{ background: '#0d0b08' }}>Outdoor View</option>
@@ -803,22 +763,23 @@ export default function ReservationsPage() {
                                 />
                             </Field>
 
-                            
+
                             <div style={{ marginBottom: '2rem' }}>
 
                                 {/* Header row */}
-                                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
-                                    <div>
-                                        <div style={{ fontFamily: "var(--font-display)", fontSize: "0.75rem", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(201,168,76,0.85)" }}>
+                                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "0.5rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                                    <div onClick={() => setIsPreorderOpen(!isPreorderOpen)} style={{ cursor: 'pointer', flex: 1, userSelect: 'none' }}>
+                                        <div style={{ fontFamily: "var(--font-display)", fontSize: "0.75rem", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(201,168,76,0.85)", display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                             ✦ Pre-order (Optional)
+                                            <span style={{ fontSize: '0.65rem', transition: 'transform 0.3s', transform: isPreorderOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
                                         </div>
                                         <div style={{ fontFamily: "var(--font-elegant)", fontSize: "1rem", color: "var(--color-cream)", fontStyle: "italic", marginTop: "0.2rem" }}>
                                             Let the kitchen prepare your selections in advance
                                         </div>
                                     </div>
-                                    {(alacarteSelected.size > 0 || Object.keys(prixFixeSelections).length > 0) && (
+                                    {Object.keys(alacarteSelected).length > 0 && (
                                         <button type="button"
-                                            onClick={() => { setPrixFixeSelections({}); setPreOrderStep(0); setAlacarteSelected(new Set()) }}
+                                            onClick={() => setAlacarteSelected({})}
                                             style={{ fontFamily: "var(--font-display)", fontSize: "0.55rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(245,240,232,0.35)", background: "transparent", border: "1px solid rgba(245,240,232,0.15)", padding: "0.4rem 0.85rem", cursor: "pointer", flexShrink: 0, transition: "all 0.2s" }}
                                             onMouseEnter={e => { e.target.style.color = "rgba(245,240,232,0.7)"; e.target.style.borderColor = "rgba(245,240,232,0.35)" }}
                                             onMouseLeave={e => { e.target.style.color = "rgba(245,240,232,0.35)"; e.target.style.borderColor = "rgba(245,240,232,0.15)" }}
@@ -826,163 +787,129 @@ export default function ReservationsPage() {
                                     )}
                                 </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginBottom: '1.2rem' }}>
-                                    {[
-                                        { id: 'set', label: 'Set Experience', sub: activeSet ? `${activeSet.label} · $${activeSet.price}++` : 'Select time first' },
-                                        { id: 'alacarte', label: 'Browse Alacarte', sub: 'Order freely from full menu' },
-                                    ].map(opt => {
-                                        const isActive = preOrderMode === opt.id
-                                        return (
-                                            <button key={opt.id} type="button"
-                                                disabled={isFormLocked || (opt.id === 'set' && !formData.time)}
-                                                onClick={() => switchPreOrderMode(opt.id)}
-                                                style={{ padding: '0.85rem 1rem', textAlign: 'left', background: isActive ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.02)', border: isActive ? '1px solid rgba(201,168,76,0.5)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '3px', transition: 'all 0.22s ease', cursor: (isFormLocked || (opt.id === 'set' && !formData.time)) ? 'not-allowed' : 'pointer', opacity: (opt.id === 'set' && !formData.time) ? 0.4 : 1 }}
-                                            >
-                                                <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.75rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: isActive ? 'var(--color-gold)' : 'rgba(245,240,232,0.5)', marginBottom: '0.3rem' }}>
-                                                    {isActive && '✓ '}{opt.label}
+                                <div style={{ display: isPreorderOpen ? 'block' : 'none', marginTop: '1.25rem' }}>
+                                    {/* Food / Beverages tab */}
+                                    <div style={{ display: 'flex', gap: '0', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '2px', overflow: 'hidden', marginBottom: '1.25rem', width: 'fit-content' }}>
+                                        {['food', 'beverages'].map(t => (
+                                            <button key={t} type="button" onClick={() => setAlacarteTab(t)}
+                                                style={{ padding: '0.75rem 1.6rem', fontFamily: 'var(--font-display)', fontSize: '0.65rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: alacarteTab === t ? 'var(--color-gold)' : 'rgba(245,240,232,0.35)', background: alacarteTab === t ? 'rgba(201,168,76,0.1)' : 'transparent', border: 'none', borderRight: '1px solid rgba(201,168,76,0.15)', cursor: 'pointer', transition: 'all 0.2s' }}
+                                            >{t === 'food' ? '🍽 Food' : '🍷 Beverages'}</button>
+                                        ))}
+                                    </div>
+
+                                    {(() => {
+                                        const allItems = alacarteTab === 'food' ? ALACARTE_FOOD : ALACARTE_BEVERAGES
+                                        const cats = [...new Set(allItems.map(i => i.cat))]
+                                        return cats.map(cat => (
+                                            <div key={cat} style={{ marginBottom: '0.5rem' }}>
+                                                <div
+                                                    onClick={() => toggleCategory(cat)}
+                                                    style={{ cursor: 'pointer', fontFamily: 'var(--font-display)', fontSize: '0.95rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#F1D592', paddingBottom: '0.6rem', borderBottom: '1px solid rgba(201,168,76,0.4)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s', padding: '0.5rem', margin: '-0.5rem -0.5rem 0.75rem -0.5rem', borderRadius: '4px', userSelect: 'none' }}
+                                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.05)'}
+                                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                >
+                                                    <span>{cat}</span>
+                                                    <span style={{ fontSize: '0.7rem', opacity: 0.8, transition: 'transform 0.3s', transform: openCategories.includes(cat) ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
                                                 </div>
-                                                <div style={{ fontFamily: 'var(--font-elegant)', fontSize: '0.9rem', color: 'var(--color-cream)', fontStyle: 'italic' }}>{opt.sub}</div>
-                                            </button>
-                                        )
-                                    })}
-                                </div>
+                                                {openCategories.includes(cat) && (() => {
+                                                    const itemsInCat = allItems.filter(i => i.cat === cat);
+                                                    const subCats = [...new Set(itemsInCat.map(i => i.subCategory || ''))];
 
-                                {/* Suggestion banner */}
-                                {!preOrderMode && formData.time && (
-                                    <div style={{ padding: '0.7rem 1rem', marginBottom: '1rem', background: 'rgba(201,168,76,0.06)', border: '1px dashed rgba(201,168,76,0.25)', borderRadius: '3px', fontFamily: 'var(--font-elegant)', fontSize: '0.82rem', color: 'rgba(245,240,232,0.5)', fontStyle: 'italic' }}>
-                                        ✦ We suggest the <strong style={{ color: 'var(--color-gold)', fontStyle: 'normal' }}>{activeSet?.label}</strong> for your {isLunchTime ? 'midday' : 'evening'} visit.
-                                    </div>
-                                )}
-
-                                {/* No time selected — gate for set mode */}
-                                {!formData.time && !preOrderMode && (
-                                    <div style={{ padding: '1.5rem', border: '1px dashed rgba(201,168,76,0.18)', textAlign: 'center', borderRadius: '3px' }}>
-                                        <div style={{ fontFamily: 'var(--font-elegant)', fontSize: '0.85rem', color: 'rgba(245,240,232,0.3)', fontStyle: 'italic' }}>
-                                            Select a dining time above to unlock set menu pre-ordering
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Mode panels */}
-                                <div ref={preOrderPanelRef}>
-
-                                    {/* SET EXPERIENCE MODE */}
-                                    {preOrderMode === 'set' && activeSet && (
-                                        <>
-                                            {/* Step progress */}
-                                            <div style={{ display: 'flex', gap: '0', marginBottom: '1.25rem' }}>
-                                                {activeSet.steps.map((step, idx) => {
-                                                    const done = !!prixFixeSelections[step.key]
-                                                    const active = idx === preOrderStep
-                                                    return (
-                                                        <button key={step.key} type="button" onClick={() => setPreOrderStep(idx)}
-                                                            style={{ flex: 1, padding: '0.5rem 0.25rem', background: done ? 'rgba(201,168,76,0.15)' : active ? 'rgba(201,168,76,0.07)' : 'transparent', border: 'none', borderBottom: done ? '2px solid var(--color-gold)' : active ? '2px solid rgba(201,168,76,0.5)' : '2px solid rgba(201,168,76,0.15)', cursor: 'pointer', transition: 'all 0.25s' }}
-                                                        >
-                                                            <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.45rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: done ? 'var(--color-gold)' : active ? 'rgba(201,168,76,0.7)' : 'rgba(245,240,232,0.25)' }}>
-                                                                {done ? '✓ ' : `${idx + 1}. `}{step.label.replace('Choose Your ', '').replace('Choose ', '')}
-                                                            </div>
-                                                        </button>
-                                                    )
-                                                })}
-                                            </div>
-
-                                            {/* Step label */}
-                                            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', color: 'var(--color-cream)', fontStyle: 'italic', marginBottom: '0.85rem' }}>
-                                                {activeSet.steps[preOrderStep]?.label}
-                                            </div>
-
-                                            {/* Selection cards */}
-                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '0.6rem', marginBottom: '1rem' }}>
-                                                {activeSet.steps[preOrderStep]?.items.map(item => {
-                                                    const isSelected = prixFixeSelections[activeSet.steps[preOrderStep].key]?.id === item.id
-                                                    return (
-                                                        <button key={item.id} type="button" disabled={isFormLocked}
-                                                            onClick={() => {
-                                                                const stepKey = activeSet.steps[preOrderStep].key
-                                                                setPrixFixeSelections(prev => ({ ...prev, [stepKey]: item }))
-                                                                if (preOrderStep < activeSet.steps.length - 1) setTimeout(() => setPreOrderStep(s => s + 1), 220)
-                                                            }}
-                                                            style={{ position: 'relative', textAlign: 'left', padding: '0.85rem 0.9rem', background: isSelected ? 'rgba(201,168,76,0.14)' : 'rgba(255,255,255,0.03)', backdropFilter: 'blur(8px)', border: isSelected ? '1px solid rgba(201,168,76,0.6)' : '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', transition: 'all 0.22s ease', cursor: isFormLocked ? 'default' : 'pointer', opacity: isFormLocked ? 0.6 : 1 }}
-                                                            onMouseEnter={e => { if (!isSelected && !isFormLocked) e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)' }}
-                                                            onMouseLeave={e => { if (!isSelected && !isFormLocked) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
-                                                        >
-                                                            {isSelected && (
-                                                                <div style={{ position: 'absolute', top: '0.5rem', right: '0.6rem', width: '16px', height: '16px', borderRadius: '50%', background: 'var(--color-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', color: '#0d0b08' }}>✓</div>
-                                                            )}
-                                                            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: isSelected ? 'var(--color-gold)' : 'var(--color-cream)', paddingRight: '1.25rem', lineHeight: 1.3, marginBottom: item.desc ? '0.3rem' : 0 }}>{item.name}</div>
-                                                            {item.desc && <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: 'rgba(245,240,232,0.38)', lineHeight: 1.4 }}>{item.desc}</div>}
-                                                            {item.surcharge && <div style={{ position: 'absolute', bottom: '0.5rem', right: '0.6rem', fontFamily: 'var(--font-display)', fontSize: '0.6rem', color: 'var(--color-gold)' }}>+${item.surcharge}</div>}
-                                                        </button>
-                                                    )
-                                                })}
-                                            </div>
-
-                                            {/* Prev / Next */}
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                                <button type="button" onClick={() => setPreOrderStep(s => Math.max(0, s - 1))} disabled={preOrderStep === 0}
-                                                    style={{ fontFamily: 'var(--font-display)', fontSize: '0.48rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: preOrderStep === 0 ? 'rgba(245,240,232,0.15)' : 'rgba(245,240,232,0.45)', background: 'transparent', border: 'none', cursor: preOrderStep === 0 ? 'default' : 'pointer' }}
-                                                >← Previous</button>
-                                                <button type="button" onClick={() => setPreOrderStep(s => Math.min(activeSet.steps.length - 1, s + 1))} disabled={preOrderStep === activeSet.steps.length - 1}
-                                                    style={{ fontFamily: 'var(--font-display)', fontSize: '0.48rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: preOrderStep === activeSet.steps.length - 1 ? 'rgba(245,240,232,0.15)' : 'var(--color-gold)', background: 'transparent', border: 'none', cursor: preOrderStep === activeSet.steps.length - 1 ? 'default' : 'pointer' }}
-                                                >Next →</button>
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {/* À LA CARTE MODE */}
-                                    {preOrderMode === 'alacarte' && (
-                                        <>
-                                            {/* Food / Beverages tab */}
-                                            <div style={{ display: 'flex', gap: '0', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '2px', overflow: 'hidden', marginBottom: '1.25rem', width: 'fit-content' }}>
-                                                {['food', 'beverages'].map(t => (
-                                                    <button key={t} type="button" onClick={() => setAlacarteTab(t)}
-                                                        style={{ padding: '0.75rem 1.6rem', fontFamily: 'var(--font-display)', fontSize: '0.65rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: alacarteTab === t ? 'var(--color-gold)' : 'rgba(245,240,232,0.35)', background: alacarteTab === t ? 'rgba(201,168,76,0.1)' : 'transparent', border: 'none', borderRight: '1px solid rgba(201,168,76,0.15)', cursor: 'pointer', transition: 'all 0.2s' }}
-                                                    >{t === 'food' ? '🍽 Food' : '🍷 Beverages'}</button>
-                                                ))}
-                                            </div>
-
-                                            {/* Items by category */}
-                                            {(() => {
-                                                const allItems = alacarteTab === 'food' ? ALACARTE_FOOD : ALACARTE_BEVERAGES
-                                                const cats = [...new Set(allItems.map(i => i.cat))]
-                                                return cats.map(cat => (
-                                                    <div key={cat} style={{ marginBottom: '1.4rem' }}>
-                                                        <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.75rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--color-gold)', marginBottom: '0.75rem', paddingBottom: '0.4rem', borderBottom: '1px solid rgba(201,168,76,0.3)' }}>{cat}</div>
-                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.1rem 1rem' }}>
-                                                            {allItems.filter(i => i.cat === cat).map(item => {
-                                                                const isSel = alacarteSelected.has(item.id)
-                                                                return (
-                                                                    <button key={item.id} type="button" disabled={isFormLocked}
-                                                                        onClick={() => !isFormLocked && toggleAlacarteItem(item.id)}
-                                                                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.75rem', padding: '0.55rem 0', background: 'transparent', border: 'none', borderBottom: isSel ? '1px solid rgba(201,168,76,0.35)' : '1px solid rgba(255,255,255,0.05)', cursor: isFormLocked ? 'default' : 'pointer', opacity: isFormLocked ? 0.5 : 1, textAlign: 'left', transition: 'all 0.18s' }}
-                                                                    >
-                                                                        <div>
-                                                                            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', color: isSel ? 'var(--color-gold)' : 'rgba(245,240,232,0.75)', textDecoration: isSel ? 'underline' : 'none', textDecorationColor: 'rgba(201,168,76,0.45)', textUnderlineOffset: '4px', lineHeight: 1.3, transition: 'color 0.18s' }}>
-                                                                                {isSel && '✦ '}{item.name}
-                                                                            </div>
-                                                                            {item.desc && <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.7rem', color: 'rgba(245,240,232,0.3)', marginTop: '0.1rem' }}>{item.desc}</div>}
+                                                    return subCats.map((sub, sIdx) => {
+                                                        const itemsInSub = itemsInCat.filter(i => (i.subCategory || '') === sub);
+                                                        return (
+                                                            <div key={sub || 'none'} style={{ marginBottom: '1rem' }}>
+                                                                {sub && (
+                                                                    <div style={{ position: 'relative', marginBottom: '0.5rem', marginTop: sIdx > 0 ? '1.5rem' : '0.5rem' }}>
+                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                                            <span style={{ flex: 1, height: '1px', background: 'rgba(176,122,80,0.15)' }} />
+                                                                            <span style={{
+                                                                                fontFamily: 'var(--font-display)', fontSize: '0.65rem',
+                                                                                color: '#d3fbd8', opacity: 0.8,
+                                                                                letterSpacing: '0.25em', whiteSpace: 'nowrap',
+                                                                                textTransform: 'uppercase',
+                                                                            }}>{sub}</span>
+                                                                            <span style={{ flex: 1, height: '1px', background: 'rgba(176,122,80,0.15)' }} />
                                                                         </div>
-                                                                        <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.75rem', color: isSel ? 'var(--color-gold)' : 'rgba(245,240,232,0.3)', flexShrink: 0, transition: 'color 0.18s' }}>{item.price}</div>
-                                                                    </button>
-                                                                )
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            })()}
-                                        </>
-                                    )}
+                                                                    </div>
+                                                                )}
+
+                                                                <div style={{ display: 'grid', gridTemplateColumns: alacarteTab === 'beverages' ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.1rem 1rem' }}>
+                                                                    {itemsInSub.map(item => {
+                                                                        const isSel = alacarteSelected[item.id] !== undefined
+                                                                        const prices = item.price.split('/').map(p => p.trim())
+
+                                                                        let leftPriceIdx = null;
+                                                                        let rightPriceIdx = null;
+                                                                        if (alacarteTab === 'beverages' && prices.length > 1) {
+                                                                            const p0 = parseInt(prices[0].replace(/\D/g, '')) || 0;
+                                                                            const p1 = parseInt(prices[1].replace(/\D/g, '')) || 0;
+                                                                            if (p0 < 50 && p1 >= 50) { leftPriceIdx = 0; rightPriceIdx = 1; }
+                                                                            else if (p1 < 50 && p0 >= 50) { leftPriceIdx = 1; rightPriceIdx = 0; }
+                                                                            else { leftPriceIdx = 0; rightPriceIdx = 1; }
+                                                                        } else if (alacarteTab === 'beverages') {
+                                                                            leftPriceIdx = null;
+                                                                            rightPriceIdx = 0;
+                                                                        }
+
+                                                                        const renderPriceBtn = (pIdx) => {
+                                                                            if (pIdx === null) return <div key={`empty_${pIdx}`} style={{ width: '4rem' }} />;
+                                                                            const p = prices[pIdx];
+                                                                            const isPriceSel = isSel && alacarteSelected[item.id] === pIdx;
+                                                                            return (
+                                                                                <button key={pIdx} type="button" disabled={isFormLocked}
+                                                                                    onClick={() => !isFormLocked && toggleAlacarteItem(item.id, pIdx)}
+                                                                                    style={{
+                                                                                        fontFamily: 'var(--font-display)', fontSize: '0.75rem',
+                                                                                        color: isPriceSel ? 'var(--color-gold)' : 'rgba(245,240,232,0.3)',
+                                                                                        background: isPriceSel ? 'rgba(201,168,76,0.1)' : 'transparent',
+                                                                                        border: '1px solid ' + (isPriceSel ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.08)'),
+                                                                                        borderRadius: '3px', cursor: isFormLocked ? 'default' : 'pointer',
+                                                                                        padding: '0.35rem 0', width: '4rem', textAlign: 'center', transition: 'all 0.18s',
+                                                                                    }}
+                                                                                >
+                                                                                    {p}
+                                                                                </button>
+                                                                            )
+                                                                        }
+
+                                                                        return (
+                                                                            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', padding: '0.4rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', minHeight: '44px' }}>
+                                                                                <button type="button" disabled={isFormLocked}
+                                                                                    onClick={() => !isFormLocked && toggleAlacarteItem(item.id, 0)}
+                                                                                    style={{ flex: 1, background: 'transparent', border: 'none', cursor: isFormLocked ? 'default' : 'pointer', opacity: isFormLocked ? 0.5 : 1, textAlign: 'left', padding: 0 }}
+                                                                                >
+                                                                                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: isSel ? 'rgba(99,83,39,0.95)' : 'rgba(245,240,232,0.75)', textDecoration: isSel ? 'underline' : 'none', textDecorationColor: 'var(--color-gold)', textUnderlineOffset: '4px', lineHeight: 1.3, transition: 'color 0.18s' }}>
+                                                                                        {isSel && '✦ '}{item.name}
+                                                                                    </div>
+                                                                                </button>
+
+                                                                                {alacarteTab === 'beverages' ? (
+                                                                                    <div style={{ display: 'grid', gridTemplateColumns: '4rem 4rem', gap: '0.2rem', flexShrink: 0, opacity: isFormLocked ? 0.5 : 1 }}>
+                                                                                        {renderPriceBtn(leftPriceIdx)}
+                                                                                        {renderPriceBtn(rightPriceIdx)}
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0, opacity: isFormLocked ? 0.5 : 1 }}>
+                                                                                        {prices.map((p, pIdx) => renderPriceBtn(pIdx))}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        )
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })
+                                                })()}
+                                            </div>
+                                        ))
+                                    })()}
                                 </div>
 
                                 {/* SUMMARY BAR */}
                                 {(() => {
-                                    const setItems = preOrderMode === 'set' && activeSet
-                                        ? activeSet.steps.map(s => prixFixeSelections[s.key]).filter(Boolean)
-                                        : []
-                                    const acItems = preOrderMode === 'alacarte' ? alacarteItems : []
-                                    const allSelected = [...setItems, ...acItems]
-                                    if (!allSelected.length) return null
-                                    const grandTotal = preOrderMode === 'set' ? `$${totalBase + totalSurcharge}++` : `$${alacarteTotal}`
+                                    if (!alacarteItems.length) return null
                                     return (
                                         <div style={{
                                             position: 'sticky',
@@ -997,17 +924,17 @@ export default function ReservationsPage() {
                                             zIndex: 100,
                                         }}>
                                             <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.8)', marginBottom: '0.6rem' }}>Your Selection</div>
-                                            {allSelected.map((item) => (
+                                            {alacarteItems.map((item) => (
                                                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', padding: '0.4rem 0', borderBottom: '1px dashed rgba(201,168,76,0.1)' }}>
                                                     <span style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'var(--color-cream)' }}>{item.name}</span>
                                                     <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--color-gold)', flexShrink: 0 }}>
-                                                        {item.surcharge ? `+$${item.surcharge}` : (item.price || '')}
+                                                        {item._selectedPriceStr}
                                                     </span>
                                                 </div>
                                             ))}
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '1rem' }}>
                                                 <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(245,240,232,0.6)' }}>Estimated Total</span>
-                                                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: 'var(--color-gold)', fontStyle: 'italic' }}>{grandTotal}</span>
+                                                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: 'var(--color-gold)', fontStyle: 'italic' }}>${alacarteTotal}</span>
                                             </div>
                                         </div>
                                     )
@@ -1028,144 +955,6 @@ export default function ReservationsPage() {
                 </div>
             </div>
 
-            
-            <div
-                style={{
-                    maxWidth: '1280px', margin: '0 auto 0',
-                    padding: '0 2rem 5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '1.25rem',
-                    flexWrap: 'wrap',
-                }}
-            >
-                {mode === 'form' && (
-                    <button
-                        onClick={startAI}
-                        className="btn-gold"
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '0.5rem',
-                            animation: 'aiGlow 2.8s ease-in-out infinite',
-                        }}
-                    >
-                        <span style={{ fontSize: '0.9rem' }}>✦</span>
-                        Use AI to Reserve
-                    </button>
-                )}
-
-                <button
-                    onClick={() => {
-                        setMenuOpen(o => !o)
-                        if (!menuOpen) {
-                            setTimeout(() => {
-                                menuDrawerRef.current && gsap.fromTo(menuDrawerRef.current,
-                                    { opacity: 0, y: 20 },
-                                    { opacity: 1, y: 0, duration: 0.45, ease: 'power4.out' }
-                                )
-                            }, 10)
-                        }
-                    }}
-                    className="btn-outline-gold"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                >
-                    {menuOpen ? 'Hide Menu' : 'View Tonight\'s Menu'}
-                </button>
-
-                <button
-                    onClick={() => navigate('/')}
-                    style={{
-                        fontFamily: 'var(--font-display)', fontSize: '0.55rem',
-                        letterSpacing: '0.2em', textTransform: 'uppercase',
-                        color: 'rgba(245,240,232,0.35)',
-                        background: 'transparent', border: 'none', cursor: 'pointer',
-                        transition: 'color 0.2s',
-                    }}
-                    onMouseEnter={e => { e.target.style.color = 'rgba(245,240,232,0.7)' }}
-                    onMouseLeave={e => { e.target.style.color = 'rgba(245,240,232,0.35)' }}
-                >
-                    Back to Homepage
-                </button>
-            </div>
-
-            {menuOpen && (
-                <div
-                    ref={menuDrawerRef}
-                    style={{
-                        maxWidth: '1280px', margin: '0 auto',
-                        padding: '0 2rem 5rem',
-                        opacity: 0,
-                    }}
-                >
-                    <div style={{
-                        border: '1px solid rgba(201,168,76,0.15)',
-                        borderRadius: '2px',
-                        overflow: 'hidden',
-                    }}>
-                        <div style={{
-                            padding: '1rem 1.5rem',
-                            background: 'rgba(201,168,76,0.04)',
-                            borderBottom: '1px solid rgba(201,168,76,0.1)',
-                        }}>
-                            <div style={{
-                                fontFamily: 'var(--font-display)', fontSize: '0.62rem',
-                                letterSpacing: '0.3em', textTransform: 'uppercase',
-                                color: 'var(--color-gold)',
-                            }}>
-                                ✦ Tonight's Menu — À La Carte
-                            </div>
-                        </div>
-                        <div style={{
-                            padding: '1.5rem',
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-                            gap: '0',
-                        }}>
-                            {DINNER_SET.steps.map(step => (
-                                <div key={step.key} style={{ padding: '0.5rem 1rem 1rem' }}>
-                                    <div style={{
-                                        fontFamily: 'var(--font-display)', fontSize: '0.55rem',
-                                        letterSpacing: '0.3em', textTransform: 'uppercase',
-                                        color: 'rgba(201,168,76,0.6)', marginBottom: '0.75rem',
-                                        paddingBottom: '0.5rem',
-                                        borderBottom: '1px solid rgba(201,168,76,0.1)',
-                                    }}>{step.label.replace('Choose Your ', '')}</div>
-                                    {step.items.map(item => (
-                                        <div key={item.id} style={{
-                                            display: 'flex', justifyContent: 'space-between',
-                                            alignItems: 'baseline', gap: '1rem',
-                                            padding: '0.5rem 0',
-                                            borderBottom: '1px dashed rgba(201,168,76,0.07)',
-                                        }}>
-                                            <span style={{
-                                                fontFamily: 'var(--font-body)', fontSize: '0.88rem',
-                                                color: 'rgba(245,240,232,0.75)',
-                                            }}>{item.name}</span>
-                                            <span style={{
-                                                fontFamily: 'var(--font-elegant)', fontSize: '0.88rem',
-                                                color: 'var(--color-gold)', fontStyle: 'italic', flexShrink: 0,
-                                            }}>{item.surcharge ? `+$${item.surcharge}` : ''}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
-                        </div>
-                        <div style={{
-                            padding: '1rem 1.5rem',
-                            borderTop: '1px solid rgba(201,168,76,0.1)',
-                            textAlign: 'center',
-                        }}>
-                            <button
-                                onClick={() => navigate('/menu')}
-                                className="btn-outline-gold"
-                                style={{ fontSize: '0.55rem' }}
-                            >
-                                View Full Menu →
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <Footer />
         </div>

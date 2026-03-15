@@ -4,12 +4,13 @@ import { gsap } from 'gsap'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-const menuData = {
+export const menuData = {
     food: {
         label: 'Food',
         sections: [
             {
                 heading: 'Something to Start',
+                subCategory: null,
                 items: [
                     { name: 'Crispy Eggplant', desc: 'Sweet Thai Chilli Sauce | Greek Yoghurt | Paprika | Fried Shallots', price: '$14' },
                     { name: 'Brussels Sprouts', desc: 'Szechuan Sauce | Cashew Nuts', price: '$14' },
@@ -22,6 +23,7 @@ const menuData = {
             },
             {
                 heading: 'Centrepiece',
+                subCategory: null,
                 items: [
                     { name: 'NZ Ribeye 300g', desc: 'Vine-ripe Tomatoes | Baby Potatoes | Pickled Cabbage | Jeow Som Dressing', price: '$46' },
                     { name: 'Chicken Rice', desc: 'Poached Chicken Breast | Bok Choy | Fragrant Rice | Homemade Chilli & Ginger Shallot Sauce · Add on: Crispy Pork Belly +$5', price: '$22' },
@@ -32,6 +34,7 @@ const menuData = {
             },
             {
                 heading: 'Pasta Selections',
+                subCategory: null,
                 items: [
                     { name: 'Truffle Salted Egg Pasta', desc: 'Mixed Mushrooms | Chilli | Curry Leaves | Cream | Truffle Oil | Parmesan | Fried Shallots', price: '$20' },
                     { name: 'Miso Risotto', desc: 'Edamame | Broccoli | Shiitake Mushrooms | Spring Onion | Sous-vide Egg', price: '$20' },
@@ -41,6 +44,7 @@ const menuData = {
             },
             {
                 heading: 'Baos — Served in Lotus Leaf Buns',
+                subCategory: null,
                 items: [
                     { name: 'Fish Bao', desc: 'Breaded Fish Fillet | Spicy Mayo | Carrot | Pickled Cabbage | Jalapeño', price: '$8 / $14' },
                     { name: 'Pork Bao', desc: 'Twice-cooked Pork Belly | Hoisin Mayo', price: '$8 / $14' },
@@ -49,6 +53,7 @@ const menuData = {
             },
             {
                 heading: 'Sidepiece',
+                subCategory: null,
                 items: [
                     { name: 'Truffle Fries', desc: 'Truffle Oil | Parmesan Cheese', price: '$12' },
                     { name: 'Mentaiko Fries', desc: 'Mentaiko Mayo | Bonito Flakes', price: '$12' },
@@ -61,6 +66,7 @@ const menuData = {
             },
             {
                 heading: 'Something Sweet',
+                subCategory: null,
                 items: [
                     { name: 'Chocolate Lava Cake', desc: '', price: '$16' },
                     { name: 'Lemon Passionfruit Tart', desc: '', price: '$12' },
@@ -75,7 +81,8 @@ const menuData = {
         label: 'Beverages',
         sections: [
             {
-                heading: 'Cocktails — Classics',
+                heading: 'Cocktails',
+                subCategory: 'Classics',
                 items: [
                     { name: 'Old Fashioned', desc: 'Bourbon | Sugar | Angostura Bitters', price: '$18' },
                     { name: 'Aperol Spritz', desc: 'Aperol | Prosecco | Soda', price: '$18' },
@@ -92,7 +99,8 @@ const menuData = {
                 ],
             },
             {
-                heading: 'Cocktails — Signatures',
+                heading: 'Cocktails',
+                subCategory: 'Signatures',
                 items: [
                     { name: 'Golden Glow', desc: 'Vodka | Elderflower Liqueur | Chrysanthemum Tea | Fresh Lime', price: '$20' },
                     { name: 'Turkish Mojito', desc: 'Rum | Mint | Pomegranate Syrup | Fresh Lime', price: '$20' },
@@ -104,34 +112,95 @@ const menuData = {
                 ],
             },
             {
-                heading: 'Liquor & Beer',
+                heading: 'Liquor',
+                subCategory: 'Gin',
                 items: [
                     { name: 'Gordon\'s Gin', desc: '', price: '$12 / $98' },
                     { name: 'Hendrick\'s Gin', desc: '', price: '$16 / $108' },
-                    { name: 'Smirnoff Vodka', desc: '', price: '$12 / $98' },
-                    { name: 'Belvedere Vodka', desc: '', price: '$16 / $108' },
-                    { name: 'Bacardi Rum', desc: '', price: '$12 / $98' },
-                    { name: 'Capt. Morgan Spiced Rum', desc: '', price: '$16 / $108' },
-                    { name: 'Jim Beam White', desc: 'Bourbon', price: '$12 / $98' },
-                    { name: 'Eagle Rare 10 Years', desc: 'Bourbon', price: '$16' },
-                    { name: 'Sazerac Rye', desc: 'Bourbon', price: '$18' },
-                    { name: 'Jose Cuervo Especial Gold', desc: 'Tequila', price: '$12 / $108' },
-                    { name: 'Johnnie Walker Black Label', desc: 'Whiskey', price: '$12 / $98' },
-                    { name: 'Jameson', desc: 'Whiskey', price: '$14' },
-                    { name: 'Glenfiddich 12 Years', desc: 'Whiskey', price: '$18' },
-                    { name: 'Glenlivet 15 Years', desc: 'Whiskey', price: '$20' },
-                    { name: 'Johnnie Walker Gold Label', desc: 'Whiskey', price: '$22' },
-                    { name: 'Aperol / Campari / Bailey\'s / Frangelico', desc: 'Aperitifs', price: '$12' },
-                    { name: 'Asahi Draught', desc: '300ml / 500ml', price: '$11 / $15' },
-                    { name: 'Heineken / Corona', desc: 'Bottled Beer', price: '$12' },
                 ],
             },
             {
-                heading: 'Wine — Bubbles & Whites',
+                heading: 'Liquor',
+                subCategory: 'Vodka',
+                items: [
+                    { name: 'Smirnoff Vodka', desc: '', price: '$12 / $98' },
+                    { name: 'Belvedere Vodka', desc: '', price: '$16 / $108' },
+                ],
+            },
+            {
+                heading: 'Liquor',
+                subCategory: 'Rum',
+                items: [
+                    { name: 'Bacardi Rum', desc: '', price: '$12 / $98' },
+                    { name: 'Capt. Morgan Spiced Rum', desc: '', price: '$16 / $108' },
+                ],
+            },
+            {
+                heading: 'Liquor',
+                subCategory: 'Bourbon',
+                items: [
+                    { name: 'Jim Beam White', desc: '', price: '$12 / $98' },
+                    { name: 'Eagle Rare 10 Years', desc: '', price: '$16' },
+                    { name: 'Sazerac Rye', desc: '', price: '$18' },
+                ],
+            },
+            {
+                heading: 'Liquor',
+                subCategory: 'Tequila',
+                items: [
+                    { name: 'Jose Cuervo Especial Gold', desc: '', price: '$12 / $108' },
+                ],
+            },
+            {
+                heading: 'Liquor',
+                subCategory: 'Whiskey',
+                items: [
+                    { name: 'Johnnie Walker Black Label', desc: '', price: '$12 / $98' },
+                    { name: 'Jameson', desc: '', price: '$14' },
+                    { name: 'Glenfiddich 12 Years', desc: '', price: '$18' },
+                    { name: 'Glenlivet 15 Years', desc: '', price: '$20' },
+                    { name: 'Johnnie Walker Gold Label', desc: '', price: '$22' },
+                ],
+            },
+            {
+                heading: 'Liquor',
+                subCategory: 'Aperities',
+                items: [
+                    { name: 'Aperol', desc: '', price: '$12' },
+                    { name: 'Campari', desc: '', price: '$12' },
+                    { name: 'Bailey\'s', desc: '', price: '$12' },
+                    { name: 'Frangelico', desc: '', price: '$12' },
+
+                ],
+            },
+            {
+                heading: 'Beer',
+                subCategory: 'Draught',
+                items: [
+                    { name: 'Asahi Draught', desc: '', price: '$11 / $15' },
+                ],
+            },
+            {
+                heading: 'Beer',
+                subCategory: 'Bottled',
+                items: [
+                    { name: 'Heineken', desc: '', price: '$12' },
+                    { name: 'Corona', desc: '', price: '$12' },
+                ],
+            },
+            {
+                heading: 'Wine',
+                subCategory: 'Bubbles',
                 items: [
                     { name: 'Piccini 1882 Spumante N.V.', desc: 'Citrus & tropical fruit | Glera · Venezia, Italy', price: '$19 / $98' },
                     { name: 'Remi Couvreur', desc: 'Almond, yeasts, green apple | Pinot Noir, Chardonnay · Champagne, France', price: '$128' },
                     { name: 'Solessence Rosé Extra Brut NV', desc: 'Pomegranate, grapefruit, brioche | Chardonnay, Pinot Noir · Champagne, France', price: '$138' },
+                ],
+            },
+            {
+                heading: 'Wine',
+                subCategory: 'Whites',
+                items: [
                     { name: 'Santa Helena Sauvignon Blanc', desc: 'Tomato leaf, fresh tropical fruits · Central Valley, Chile', price: '$19 / $75' },
                     { name: 'Fantini Pinot Grigio', desc: 'Peach, grapefruit, lemon-lime | Abruzzo, Italy 2023', price: '$19 / $90' },
                     { name: 'Adler Schnabel Pinot Bianco', desc: 'Floral, green apples, mineral finish | Trentino, Italy 2021', price: '$108' },
@@ -140,7 +209,8 @@ const menuData = {
                 ],
             },
             {
-                heading: 'Wine — Reds',
+                heading: 'Wine',
+                subCategory: 'Reds',
                 items: [
                     { name: 'Santa Helena Varietal Merlot', desc: 'Plum, light spice, chocolate | Central Valley, Chile 2023', price: '$19 / $75' },
                     { name: 'Vigna Madre Kriya Bio', desc: 'Organic · Blackcurrant, cedar, well balanced | Abruzzo, Italy 2021', price: '$19 / $90' },
@@ -150,153 +220,95 @@ const menuData = {
                 ],
             },
             {
-                heading: 'Coffee & Tea',
+                heading: 'Coffee/Tea',
+                subCategory: 'Classic Coffee',
                 items: [
-                    { name: 'Espresso / Double Espresso', desc: '', price: '$4 / $5' },
-                    { name: 'Americano / Long Black', desc: '', price: '$5' },
-                    { name: 'Flat White / Latte / Cappuccino / Mocha', desc: '', price: '$5' },
-                    { name: 'Macchiato / Double Macchiato', desc: '', price: '$5 / $6' },
+                    { name: 'Espresso', desc: '', price: '$4' },
+                    { name: 'Double Espresso', desc: '', price: '$5' },
+                    { name: 'Americano', desc: '', price: '$5' },
+                    { name: 'Flat White', desc: '', price: '$5' },
+                    { name: 'Latte', desc: '', price: '$5' },
+                    { name: 'Cappuccino', desc: '', price: '$5' },
+                    { name: 'Mocha', desc: '', price: '$5' },
+                    { name: 'Macchiato', desc: '', price: '$5' },
+                    { name: 'Double Macchiato', desc: '', price: '$6' },
+                ],
+            },
+            {
+                heading: 'Coffee/Tea',
+                subCategory: 'Specialty Coffee',
+                items: [
                     { name: 'Hazelnut Kopi', desc: 'Nanyang Black Coffee | Hazelnut | Steamed Milk', price: '$8' },
                     { name: 'Dolce Latte (Hot / Cold)', desc: 'Dolce Syrup | Espresso | Fresh Milk', price: '$8' },
                     { name: 'Coconut Latte (Hot / Cold)', desc: 'Coconut Milk | Espresso | Fresh Milk', price: '$8' },
-                    { name: 'English Breakfast / Earl Grey / Peppermint / Green Tea / Chamomile', desc: 'Classic Tea', price: '$5' },
+                ],
+            },
+            {
+                heading: 'Coffee/Tea',
+                subCategory: 'Classic Tea',
+                items: [
+                    { name: 'English Breakfast', desc: '', price: '$5' },
+                    { name: 'Earl Grey', desc: '', price: '$5' },
+                    { name: 'Peppermint', desc: '', price: '$5' },
+                    { name: 'Green Tea', desc: '', price: '$5' },
+                    { name: 'Chamomile', desc: '', price: '$5' },
+                ],
+            },
+            {
+                heading: 'Coffee/Tea',
+                subCategory: 'Specialty Tea',
+                items: [
                     { name: 'Spiced Chai Latte (Hot / Cold)', desc: 'Spiced Chai Tea | Fresh Milk | Cinnamon', price: '$8' },
                     { name: 'Minty Lemon Tea', desc: 'Black Tea | Lemon Juice | Mint Leaves', price: '$8' },
                     { name: 'Golden Earl Tea', desc: 'Black Tea | Orange Juice | Grenadine | Soda', price: '$8' },
                 ],
             },
             {
-                heading: 'No Alcohol',
+                heading: 'No alcohol',
+                subCategory: 'Mocktails',
                 items: [
                     { name: 'Tokyo Lemonade', desc: 'Strawberry Calpis | Sprite', price: '$12' },
                     { name: 'Mango Tango', desc: 'Mango Juice | Sprite | Whipped Cream', price: '$12' },
                     { name: 'Citrus Blush', desc: 'Orange | Apple | Cranberry Juice | Blueberry | Lemon | Soda', price: '$12' },
+                ],
+            },
+            {
+                heading: 'No alcohol',
+                subCategory: 'Milkshakes',
+                items: [
                     { name: 'Lava Chip Milkshake', desc: 'Chocolate | Chocolate Chips | Fresh Milk', price: '$10' },
                     { name: 'Very Strawberry Milkshake', desc: 'Strawberry | Yogurt | Fresh Milk', price: '$10' },
-                    { name: 'Fresh Juice', desc: 'Orange / Mango / Apple / Pineapple / Cranberry', price: '$5' },
-                    { name: 'Soft Drinks', desc: 'Coke / Coke Zero / Soda / Sprite / Ginger Ale / Tonic', price: '$5' },
-                    { name: 'Eira Still / Sparkling Water', desc: 'Bottled Water', price: '$8' },
                 ],
             },
-        ],
-    },
-    lunch: {
-        label: 'Lunch',
-        sections: [
             {
-                heading: 'Choice of Starters',
+                heading: 'No alcohol',
+                subCategory: 'Juices',
                 items: [
-                    { name: 'Charred Watermelon', desc: 'Homemade Paneer | Romesco Sauce | Crushed Pistachio | Balsamic Pearls', price: '' },
-                    { name: 'Brussels Sprouts', desc: 'Szechuan Sauce | Cashew Nuts', price: '' },
-                    { name: 'Chicken Wings', desc: 'Choice of Korean or Soy Honey', price: '' },
-                    { name: 'Crispy Eggplant', desc: 'Sweet Thai Chilli Sauce | Greek Yoghurt | Paprika | Fried Shallots', price: '' },
-                    { name: 'Prawn Dumplings', desc: 'Homemade Prawn Dumplings | Water Chestnut | Coriander | Spicy Coconut Broth', price: '+$2' },
-                    { name: 'Soft Shell Crab with Mantou', desc: 'Singapore Chilli Crab Sauce | Fried Mantou', price: '+$6' },
+                    { name: 'Orange Juice', desc: '', price: '$5' },
+                    { name: 'Mango Juice', desc: '', price: '$5' },
+                    { name: 'Apple Juice', desc: '', price: '$5' },
+                    { name: 'Pineapple Juice', desc: '', price: '$5' },
+                    { name: 'Cranberry Juice', desc: '', price: '$5' },
                 ],
             },
             {
-                heading: 'Choice of Mains',
-                subSections: [
-                    {
-                        subHeading: 'Rice Bowls',
-                        items: [
-                            { name: 'Prawn / Pork Belly / Satay Chicken / Tofu (V)', desc: '', price: '+$3' },
-                            { name: 'NZ Ribeye', desc: '', price: '+$8' },
-                        ],
-                    },
-                    {
-                        subHeading: 'Wraps',
-                        items: [
-                            { name: 'Smoked Salmon Pita with Fries', desc: '', price: '' },
-                        ],
-                    },
-                    {
-                        subHeading: 'Baos',
-                        items: [
-                            { name: 'Baos (2 pcs) — Pork / Fish / Tofu (V)', desc: 'Served in Lotus Leaf Buns', price: '' },
-                        ],
-                    },
-                    {
-                        subHeading: 'Pasta Selections',
-                        items: [
-                            { name: 'Truffle Salted Egg Pasta', desc: 'Mixed Mushrooms | Chilli | Curry Leaves | Cream | Truffle Oil', price: '' },
-                            { name: 'Squid Ink Spaghetti Vongole', desc: 'Clams | White Wine | Chilli | Parsley', price: '' },
-                            { name: 'Braised Spiced Beef Fettucine', desc: '12-hour Braised Five-spice Beef | Parmesan | Fried Shallots', price: '' },
-                        ],
-                    },
-                ],
-            },
-            {
-                heading: 'Dessert',
+                heading: 'No alcohol',
+                subCategory: 'Soft Drinks',
                 items: [
-                    { name: 'Churros', desc: 'Kaya Dipping Sauce', price: '' },
-                    { name: 'Lemon Tart', desc: '', price: '+$2' },
-                    { name: 'Choc Lava Cake', desc: '', price: '+$3' },
+                    { name: 'Coke', desc: '', price: '$5' },
+                    { name: 'Coke Zero', desc: '', price: '$5' },
+                    { name: 'Soda', desc: '', price: '$5' },
+                    { name: 'Sprite', desc: '', price: '$5' },
+                    { name: 'Ginger Ale', desc: '', price: '$5' },
+                    { name: 'Tonic', desc: '', price: '$5' },
                 ],
             },
-        ],
-    },
-    dinner: {
-        label: 'Dinner',
-        sections: [
             {
-                heading: 'Starter Selection',
+                heading: 'No alcohol',
+                subCategory: 'Bottled Water',
                 items: [
-                    { name: 'Crispy Eggplant', desc: 'Sweet Thai Chilli Sauce | Greek Yoghurt | Paprika | Fried Shallots', price: '' },
-                    { name: 'Charred Watermelon', desc: 'Homemade Paneer | Romesco Sauce | Crushed Pistachio | Balsamic Pearls', price: '' },
-                    { name: 'Brussels Sprouts', desc: 'Szechuan Sauce | Cashew Nuts', price: '' },
-                    { name: 'Chicken Mid Wings', desc: 'Choice of Korean or Soy Honey', price: '' },
-                    { name: 'Prawn Dumplings', desc: 'Water Chestnut | Coriander | Spicy Coconut Broth', price: '+$4' },
-                    { name: 'Soft Shell Crab', desc: 'Singapore Chilli Crab Sauce | Fried Mantou', price: '+$4' },
-                    { name: 'Sticky Pork Ribs', desc: 'Hoisin Glaze | Sesame Seeds | Pickled Cabbage', price: '+$4' },
-                ],
-            },
-            {
-                heading: 'Signature Pieces',
-                subSections: [
-                    {
-                        subHeading: 'From the Sea',
-                        items: [
-                            { name: 'Pan Seared Halibut', desc: 'White Clams | Saffron Cream Sauce | Charred Bok Choy | Cherry Tomatoes', price: '' },
-                            { name: 'Squid Ink Vongole', desc: 'Clams | White Wine | Chilli | Parsley', price: '' },
-                            { name: 'Char Kway Teow', desc: 'Crayfish | Clams | Rice Noodles | Garlic | Eggs | Beansprouts | Fried Shallots', price: '+$6' },
-                        ],
-                    },
-                    {
-                        subHeading: 'From the Land',
-                        items: [
-                            { name: 'Chicken Rice', desc: 'Poached Chicken Breast | Bok Choy | Fragrant Rice | Homemade Chilli & Ginger Shallot Sauce', price: '' },
-                            { name: 'Chicken Satay', desc: 'Turmeric Spiced Chicken | Homemade Peanut Sauce | Polenta Chips', price: '' },
-                            { name: 'Braised Beef Fettuccine', desc: '12-hour Braised Five-spice Beef | Parmesan Cheese | Fried Shallots', price: '+$6' },
-                            { name: 'NZ Ribeye 300g', desc: 'Vine-ripe Tomatoes | Baby Potatoes | Pickled Cabbage | Jeow Som Dressing', price: '+$12' },
-                        ],
-                    },
-                    {
-                        subHeading: 'From the Garden',
-                        items: [
-                            { name: 'Miso Risotto', desc: 'Edamame | Broccoli | Shiitake Mushrooms | Spring Onion | Sous-vide Egg', price: '' },
-                            { name: 'Truffle Salted Egg Pasta', desc: 'Mixed Mushrooms | Chilli | Curry Leaves | Cream | Truffle Oil | Parmesan', price: '' },
-                        ],
-                    },
-                ],
-            },
-            {
-                heading: 'Side Dish',
-                items: [
-                    { name: 'Rosemary Baby Potatoes', desc: 'Served with Aioli', price: '' },
-                    { name: 'Polenta Fries', desc: '', price: '' },
-                    { name: 'Truffle Fries', desc: 'Truffle Oil | Parmesan Cheese', price: '+$2' },
-                    { name: 'Mentaiko Fries', desc: 'Mentaiko Mayo | Bonito Flakes', price: '+$2' },
-                ],
-            },
-            {
-                heading: 'Sweet Ending',
-                items: [
-                    { name: 'Coconut Panna Cotta', desc: '', price: '' },
-                    { name: 'Lemon Passionfruit Tart', desc: '', price: '' },
-                    { name: 'Churros', desc: 'Kaya Dipping Sauce', price: '' },
-                    { name: 'Chocolate Lava Cake', desc: '', price: '+$4' },
-                    { name: 'Gelato', desc: 'Choc Brownie | Hazelnut | Sweet Smurfs | Caramel Latte', price: '+$2' },
+                    { name: 'Eira Still Water', desc: '', price: '$8' },
+                    { name: 'Eira Sparkling Water', desc: '', price: '$8' },
                 ],
             },
         ],
@@ -306,9 +318,68 @@ const menuData = {
 const tabs = [
     { id: 'food', label: 'Food' },
     { id: 'beverages', label: 'Beverages' },
-    { id: 'lunch', label: 'Lunch' },
-    { id: 'dinner', label: 'Dinner' },
 ]
+
+const TumblerIcon = () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 8l1 12c.1.9 1 1.5 2 1.5h8c1 0 1.9-.6 2-1.5l1-12"></path>
+        <path d="M4 8h16"></path>
+        <path d="M9 12h2v2H9z"></path>
+        <path d="M13 14h2v2h-2z"></path>
+        <path d="M12 9A3 3 0 009 6a3 3 0 013-3"></path>
+    </svg>
+)
+
+const WineGlassIcon = () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 15v6"></path>
+        <path d="M9 21h6"></path>
+        <path d="M5 7c0 4.4 3.6 8 7 8s7-3.6 7-8-3.1-5-7-5-7 .6-7 5z"></path>
+        <path d="M5 7h14"></path>
+        <path d="M7 11c1.5 1 3 1 5 0s3.5-1 5 0"></path>
+    </svg>
+)
+
+const BottleIcon = () => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 2v6l-2 4v10a2 2 0 002 2h4a2 2 0 002-2V12l-2-4V2"></path>
+        <path d="M10 2h4"></path>
+    </svg>
+)
+
+const getSubCategoryIcons = (sub) => {
+    if (!sub) return null;
+    const s = sub.toLowerCase();
+
+    if (s === 'draught') {
+        return (
+            <>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', paddingBottom: '0.2rem', fontFamily: 'var(--font-display)', fontSize: '0.65rem', color: 'rgba(201,168,76,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}>300ML</div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', paddingBottom: '0.2rem', fontFamily: 'var(--font-display)', fontSize: '0.65rem', color: 'rgba(201,168,76,0.5)', letterSpacing: '0.1em', fontWeight: 600 }}>500ML</div>
+            </>
+        )
+    }
+
+    let LeftIcon = null;
+    let RightIcon = BottleIcon;
+
+    if (['gin', 'vodka', 'rum', 'bourbon', 'tequila'].includes(s)) {
+        LeftIcon = TumblerIcon;
+    } else if (['whiskey', 'bubbles', 'whites', 'reds', 'red', 'white'].includes(s)) {
+        LeftIcon = WineGlassIcon;
+    }
+
+    if (LeftIcon) {
+        return (
+            <>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', paddingBottom: '0.25rem', color: 'rgba(201,168,76,0.45)' }}><LeftIcon /></div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', paddingBottom: '0.25rem', color: 'rgba(201,168,76,0.45)' }}><RightIcon /></div>
+            </>
+        )
+    }
+
+    return null;
+}
 
 export default function FoodMenuPage() {
     const location = useLocation()
@@ -455,83 +526,39 @@ export default function FoodMenuPage() {
             {/* Menu Content */}
             <div ref={contentRef} style={{ maxWidth: '780px', margin: '0 auto', padding: '4rem 2rem 6rem' }}>
 
-                {/* ── Lunch: Prix Fixe header ─────────────────────────────── */}
-                {/* ── Dinner: Prix Fixe header ─────────────────────────────── */}
-                {activeTab === 'dinner' && (
-                    <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-                        <div style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '1.5rem',
-                            border: '1px solid rgba(201,168,76,0.3)',
-                            padding: '0.9rem 2.5rem',
-                            marginBottom: '1.75rem',
-                            background: 'rgba(201,168,76,0.04)',
-                        }}>
-                            <span style={{ width: '30px', height: '1px', background: 'rgba(201,168,76,0.4)' }} />
-                            <span style={{
-                                fontFamily: 'var(--font-display)', fontSize: '0.6rem',
-                                letterSpacing: '0.3em', color: 'var(--color-gold)', textTransform: 'uppercase',
-                            }}>Daily · 6:00 PM – 10:00 PM</span>
-                            <span style={{ width: '30px', height: '1px', background: 'rgba(201,168,76,0.4)' }} />
-                        </div>
-                        <p style={{
-                            fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.2rem, 2.5vw, 1.8rem)',
-                            color: 'var(--color-cream)', fontStyle: 'italic', fontWeight: 400, marginBottom: '0.6rem',
-                        }}>
-                            The Heritage Dinner Set — <span style={{ color: 'var(--color-gold)' }}>$68++</span> per guest
-                        </p>
-                        <p style={{
-                            fontFamily: 'var(--font-elegant)', fontSize: '1.3rem',
-                            color: 'rgba(245,240,232,0.55)', fontStyle: 'italic', letterSpacing: '0.03em',
-                        }}>
-                            Select 1 Starter, 1 Signature Piece, 1 Side Dish, and 1 Sweet Ending
-                        </p>
-                    </div>
-                )}
-
-                {/* ── Lunch: Prix Fixe header ─────────────────────────────── */}
-                {activeTab === 'lunch' && (
-                    <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-                        <div style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '1.5rem',
-                            border: '1px solid rgba(201,168,76,0.3)',
-                            padding: '0.9rem 2.5rem',
-                            marginBottom: '1.75rem',
-                            background: 'rgba(201,168,76,0.04)',
-                        }}>
-                            <span style={{ width: '30px', height: '1px', background: 'rgba(201,168,76,0.4)' }} />
-                            <span style={{
-                                fontFamily: 'var(--font-display)', fontSize: '0.6rem',
-                                letterSpacing: '0.3em', color: 'var(--color-gold)', textTransform: 'uppercase',
-                            }}>Mon – Fri · 11:30 AM – 3:00 PM</span>
-                            <span style={{ width: '30px', height: '1px', background: 'rgba(201,168,76,0.4)' }} />
-                        </div>
-                        <p style={{
-                            fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.2rem, 2.5vw, 1.8rem)',
-                            color: 'var(--color-cream)', fontStyle: 'italic', fontWeight: 400, marginBottom: '0.6rem',
-                        }}>
-                            A Curated Mid-day Journey — <span style={{ color: 'var(--color-gold)' }}>$24++</span> per guest
-                        </p>
-                        <p style={{
-                            fontFamily: 'var(--font-elegant)', fontSize: '1.3rem',
-                            color: 'rgba(245,240,232,0.55)', fontStyle: 'italic', letterSpacing: '0.03em',
-                        }}>
-                            Select 1 Starter, 1 Main, and 1 Dessert from the selections below
-                        </p>
-                    </div>
-                )}
-
                 {/* ── Sections ─────────────────────────────────────────────── */}
                 {data.sections.map((section, si) => {
                     // Reusable item row renderer
+                    const isBeverages = activeTab === 'beverages';
                     const renderItemRow = (item, ii) => {
-                        const isSurcharge = item.price && item.price.startsWith('+')
-                        const isPrixFixe = activeTab === 'lunch' || activeTab === 'dinner'
+                        let leftPrice = null;
+                        let rightPrice = item.price;
+
+                        if (isBeverages && item.price.includes('/')) {
+                            const prices = item.price.split('/').map(p => p.trim());
+                            const p0 = parseInt(prices[0].replace(/\D/g, '')) || 0;
+                            const p1 = parseInt(prices[1].replace(/\D/g, '')) || 0;
+                            if (p0 < 50 && p1 >= 50) {
+                                leftPrice = prices[0];
+                                rightPrice = prices[1];
+                            } else if (p1 < 50 && p0 >= 50) {
+                                leftPrice = prices[1];
+                                rightPrice = prices[0];
+                            } else {
+                                leftPrice = prices[0];
+                                rightPrice = prices[1];
+                            }
+                        } else if (isBeverages) {
+                            leftPrice = null;
+                            rightPrice = item.price;
+                        }
+
                         return (
                             <div
                                 key={ii}
                                 style={{
                                     display: 'grid',
-                                    gridTemplateColumns: '1fr auto',
+                                    gridTemplateColumns: isBeverages ? '1fr 4.5rem 4.5rem' : '1fr auto',
                                     gap: '1rem',
                                     alignItems: 'start',
                                     padding: '1.25rem 0',
@@ -557,61 +584,87 @@ export default function FoodMenuPage() {
                                         </div>
                                     )}
                                 </div>
-                                <div style={{
-                                    fontFamily: 'var(--font-display)',
-                                    fontSize: '1.05rem',
-                                    color: 'var(--color-gold)',
-                                    whiteSpace: 'nowrap',
-                                    fontWeight: 500,
-                                    paddingTop: '3px',
-                                    minWidth: '3.5rem',
-                                    textAlign: 'right',
-                                }}>
-                                    {/* Prix Fixe tabs: show only surcharges, hide included items */}
-                                    {isPrixFixe ? (isSurcharge ? item.price : '') : item.price}
-                                </div>
+
+                                {isBeverages ? (
+                                    <>
+                                        <div style={{
+                                            fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--color-gold)',
+                                            textAlign: 'right', paddingTop: '3px', fontWeight: 500,
+                                        }}>
+                                            {leftPrice}
+                                        </div>
+                                        <div style={{
+                                            fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--color-gold)',
+                                            textAlign: 'right', paddingTop: '3px', fontWeight: 500,
+                                        }}>
+                                            {rightPrice}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div style={{
+                                        fontFamily: 'var(--font-display)',
+                                        fontSize: '1.05rem',
+                                        color: 'var(--color-gold)',
+                                        whiteSpace: 'nowrap',
+                                        fontWeight: 500,
+                                        paddingTop: '3px',
+                                        minWidth: '3.5rem',
+                                        textAlign: 'right',
+                                    }}>
+                                        {item.price}
+                                    </div>
+                                )}
                             </div>
                         )
                     }
 
-                    return (
-                        <div key={si} style={{ marginBottom: '4rem' }}>
-                            {/* Section heading */}
-                            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                                <h2 style={{
-                                    fontFamily: 'var(--font-display)',
-                                    fontSize: 'clamp(1rem, 2vw, 1.4rem)',
-                                    letterSpacing: '0.2em',
-                                    color: 'var(--color-cream)',
-                                    textTransform: 'uppercase',
-                                    fontWeight: 500,
-                                }}>
-                                    {section.heading}
-                                </h2>
-                                <div style={{ width: '60px', height: '1px', background: 'var(--color-gold)', opacity: 0.4, margin: '0.75rem auto 0' }} />
-                            </div>
+                    const prevSection = si > 0 ? data.sections[si - 1] : null;
+                    const nextSection = si < data.sections.length - 1 ? data.sections[si + 1] : null;
+                    const showHeading = !prevSection || prevSection.heading !== section.heading;
+                    const isLastOfHeading = !nextSection || nextSection.heading !== section.heading;
 
-                            {/* SubSections (Lunch Mains only) */}
-                            {section.subSections ? (
-                                section.subSections.map((sub, ssi) => (
-                                    <div key={ssi} style={{ marginBottom: '2rem' }}>
-                                        {/* Centered sub-header with flanking lines */}
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem', marginTop: '0.5rem' }}>
-                                            <span style={{ flex: 1, height: '1px', background: 'rgba(176,122,80,0.25)' }} />
-                                            <span style={{
-                                                fontFamily: 'var(--font-display)', fontSize: '0.72rem',
-                                                color: '#D3FBD8',
-                                                letterSpacing: '0.25em', whiteSpace: 'nowrap',
-                                                textTransform: 'uppercase',
-                                            }}>{sub.subHeading}</span>
-                                            <span style={{ flex: 1, height: '1px', background: 'rgba(176,122,80,0.25)' }} />
-                                        </div>
-                                        {sub.items.map(renderItemRow)}
-                                    </div>
-                                ))
-                            ) : (
-                                section.items.map(renderItemRow)
+                    return (
+                        <div key={si} style={{ marginBottom: isLastOfHeading ? '4rem' : '3.5rem' }}>
+                            {/* Section heading */}
+                            {showHeading && (
+                                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                                    <h2 style={{
+                                        fontFamily: 'var(--font-display)',
+                                        fontSize: 'clamp(1rem, 2vw, 1.4rem)',
+                                        letterSpacing: '0.2em',
+                                        color: 'var(--color-cream)',
+                                        textTransform: 'uppercase',
+                                        fontWeight: 500,
+                                    }}>
+                                        {section.heading}
+                                    </h2>
+                                    <div style={{ width: '60px', height: '1px', background: 'var(--color-gold)', opacity: 0.4, margin: '0.75rem auto 0' }} />
+                                </div>
                             )}
+
+                            {/* SubCategory Header */}
+                            {section.subCategory && (
+                                <div style={{ position: 'relative', marginBottom: '0.75rem', marginTop: showHeading ? '0.5rem' : '0' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        <span style={{ flex: 1, height: '1px', background: 'rgba(176,122,80,0.25)' }} />
+                                        <span style={{
+                                            fontFamily: 'var(--font-display)', fontSize: '0.72rem',
+                                            color: '#D3FBD8',
+                                            letterSpacing: '0.25em', whiteSpace: 'nowrap',
+                                            textTransform: 'uppercase',
+                                        }}>{section.subCategory}</span>
+                                        <span style={{ flex: 1, height: '1px', background: 'rgba(176,122,80,0.25)' }} />
+                                    </div>
+
+                                    {activeTab === 'beverages' && getSubCategoryIcons(section.subCategory) && (
+                                        <div style={{ position: 'absolute', right: 0, bottom: 0, top: 0, display: 'grid', gridTemplateColumns: '4.5rem 4.5rem', width: '10rem', gap: '1rem', background: 'var(--color-dark)' }}>
+                                            {getSubCategoryIcons(section.subCategory)}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {section.items.map(renderItemRow)}
                         </div>
                     )
                 })}
