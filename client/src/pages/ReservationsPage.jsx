@@ -231,8 +231,8 @@ export default function ReservationsPage() {
     const chatScrollContainerRef = useRef(null)
     const aiInputRef = useRef(null)
 
-    // Auto-scroll chat messages safely without causing window jump
     useEffect(() => {
+        // Auto-scroll chat messages safely without causing window jump
         if (chatScrollContainerRef.current) {
             chatScrollContainerRef.current.scrollTo({
                 top: chatScrollContainerRef.current.scrollHeight,
@@ -240,34 +240,6 @@ export default function ReservationsPage() {
             })
         }
     }, [messages, isTyping])
-
-    useEffect(() => {
-        if (mode === 'ai') {
-            // Chat slides in from left
-            gsap.fromTo(chatPanelRef.current,
-                { x: '-100%', opacity: 0 },
-                { x: '0%', opacity: 1, duration: 0.55, ease: 'power4.out' }
-            )
-            gsap.to(formPanelRef.current, {
-                opacity: 0.35,
-                duration: 0.4,
-                ease: 'power3.out',
-            })
-        } else {
-            // Chat slides back left, form gets full width + unlocked
-            if (chatPanelRef.current) {
-                gsap.to(chatPanelRef.current, {
-                    x: '-100%', opacity: 0,
-                    duration: 0.45, ease: 'power4.in',
-                })
-            }
-            if (formPanelRef.current) {
-                gsap.to(formPanelRef.current, {
-                    opacity: 1, duration: 0.4, ease: 'power3.out',
-                })
-            }
-        }
-    }, [mode])
 
     const startAI = useCallback(() => {
         setMode('ai')
@@ -299,6 +271,20 @@ export default function ReservationsPage() {
         setIsTyping(true)
 
         try {
+            // Parallel AI Form Extraction (Fire and Forget)
+            fetch('http://127.0.0.1:5000/api/ai/chat/extract', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text.trim() })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data && Object.keys(data).length > 0) {
+                    setFormData(prev => ({ ...prev, ...data }));
+                }
+            })
+            .catch(err => console.error("AI Extraction Error:", err));
+
             const res = await fetch('http://127.0.0.1:5000/api/ai/chat/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -429,7 +415,7 @@ export default function ReservationsPage() {
                     overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'flex-start',
-                    gap: '2rem',
+                    gap: mode === 'ai' ? '2rem' : '0',
                     minHeight: '700px',
                 }}
             >
@@ -437,12 +423,10 @@ export default function ReservationsPage() {
                 <div
                     ref={chatPanelRef}
                     style={{
-                        position: mode === 'ai' ? 'relative' : 'absolute',
-                        left: mode === 'ai' ? 'auto' : 0,
-                        width: 'calc(50% - 1rem)',
-                        flexShrink: 0,
-                        transform: mode === 'ai' ? 'translateX(0)' : 'translateX(-110%)',
+                        width: mode === 'ai' ? 'calc(50% - 1rem)' : '0px',
+                        transform: mode === 'ai' ? 'translateX(0)' : 'translateX(-40px)',
                         opacity: mode === 'ai' ? 1 : 0,
+                        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                         display: 'flex',
                         flexDirection: 'column',
                         height: '700px',
@@ -453,6 +437,7 @@ export default function ReservationsPage() {
                         borderRadius: '2px',
                         overflow: 'hidden',
                         pointerEvents: mode === 'ai' ? 'all' : 'none',
+                        flexShrink: 0,
                     }}
                 >
                     {/* Chat header */}
@@ -559,15 +544,35 @@ export default function ReservationsPage() {
                             display: 'flex', gap: '0.6rem', flexShrink: 0,
                         }}
                     >
-                        <input
+                        <textarea
                             ref={aiInputRef}
                             className="chat-input-bar"
-                            type="text"
+                            data-lenis-prevent
                             placeholder="Type your answer…"
                             value={aiInput}
-                            onChange={e => setAiInput(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAI(aiInput) } }}
-                            style={{ flex: 1 }}
+                            onChange={e => {
+                                setAiInput(e.target.value);
+                                e.target.style.height = 'auto'; // Reset to auto first to get accurate scrollHeight
+                                e.target.style.height = `${Math.min(e.target.scrollHeight, 110)}px`;
+                            }}
+                            onKeyDown={e => { 
+                                if (e.key === 'Enter' && !e.shiftKey) { 
+                                    e.preventDefault(); 
+                                    if(aiInput.trim()) {
+                                        sendAI(aiInput);
+                                        e.target.style.height = 'auto'; // Reset back
+                                    }
+                                } 
+                            }}
+                            rows={1}
+                            style={{ 
+                                flex: 1, 
+                                resize: 'none', 
+                                overflowY: 'auto', 
+                                maxHeight: '110px',
+                                padding: '12px 16px',
+                                lineHeight: '1.4',
+                            }}
                         />
                         <button
                             onClick={() => sendAI(aiInput)}
@@ -593,43 +598,13 @@ export default function ReservationsPage() {
                     style={{
                         flex: 1,
                         maxWidth: mode === 'form' ? '680px' : '100%',
-                        width: mode === 'form' ? '100%' : 'calc(50% - 1rem)',
-                        margin: mode === 'form' ? '0 auto' : '0',
-                        transition: 'max-width 0.5s ease, opacity 0.4s ease',
+                        margin: '0 auto',
+                        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                         pointerEvents: isFormLocked ? 'none' : 'all',
                         position: 'relative',
                     }}
                 >
-                    {/* Locked overlay message */}
-                    {isFormLocked && (
-                        <div
-                            style={{
-                                position: 'absolute',
-                                inset: 0,
-                                zIndex: 20,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'flex-start',
-                                paddingTop: '2rem',
-                                gap: '0.5rem',
-                            }}
-                        >
-                            <div style={{
-                                fontFamily: 'var(--font-display)',
-                                fontSize: '0.6rem',
-                                letterSpacing: '0.3em',
-                                textTransform: 'uppercase',
-                                color: 'var(--color-gold)',
-                                opacity: 0.8,
-                            }}>
-                                AI is completing your form
-                            </div>
-                            <div style={{ color: 'rgba(201,168,76,0.4)', fontSize: '0.75rem', fontStyle: 'italic', fontFamily: 'var(--font-elegant)' }}>
-                                Fields update live as you chat →
-                            </div>
-                        </div>
-                    )}
+                    {/* Locked overlay message (Removed per user request) */}
 
                     {submitted ? (
                         <div style={{
