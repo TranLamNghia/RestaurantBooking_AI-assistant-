@@ -41,9 +41,9 @@ class ToolRegistry:
 
         @tool
         async def check_availability(
-            date: Optional[str] = Field(None, description="Reservation date in YYYY-MM-DD format. (e.g., '2026-04-30')"),
-            time: Optional[str] = Field(None, description="Reservation time in HH:MM format. (e.g., '19:00')"),
-            preferred_space: Optional[str] = Field(None, description="Preferred dining space (e.g., 'Main Dining', 'Outdoor', 'VIP Room', 'Bar Counter')")
+            date: Optional[str] = Field(None, description="Reservation date in YYYY-MM-DD format."),
+            time: Optional[str] = Field(None, description="Reservation time in HH:MM format."),
+            preferred_space: Optional[str] = Field(None, description="Preferred space: 'Outdoor Veranda', 'The Grand Hall', 'Group Dining', 'Sofa Booth', 'Private VIP Room', 'Event Space'")
         ) -> str:
             """
             Check the restaurant's table availability. ALWAYS ask the guest for the DATE before calling this function.

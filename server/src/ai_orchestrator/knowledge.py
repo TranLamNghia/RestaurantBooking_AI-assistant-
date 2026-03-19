@@ -1,5 +1,3 @@
-# knowledge.py
-
 RESTAURANT_KNOWLEDGE_BASE = """
 # Spice of Life - Official Knowledge Base (Updated 2026)
 

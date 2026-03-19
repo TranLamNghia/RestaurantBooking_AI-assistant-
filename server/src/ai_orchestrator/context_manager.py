@@ -2,11 +2,6 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 
 class ContextManager:
-    """
-    Manage conversation memory (Memory/Session) for users.
-    Currently using in-memory dictionary. 
-    In the future, it can be extended to save into Redis/MySQL.
-    """
     def __init__(self):
         self._session_memories = {}
 
@@ -23,5 +18,4 @@ class ContextManager:
         if session_id in self._session_memories:
             self._session_memories[session_id].clear()
 
-# Singleton instance for the application
 context_manager = ContextManager()

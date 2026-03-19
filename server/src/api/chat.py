@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from src.data_layer.database import get_db
-from src.ai_orchestrator.agent import handle_user_message
+from src.ai_orchestrator.agent import handle_user_message, extract_form_details
 from typing import Optional
 import uuid
 
@@ -29,3 +29,14 @@ async def chat_with_ai(request: ChatRequest, db: Session = Depends(get_db)):
         reply=reply_text,
         session_id=session_id
     )
+
+@router.post("/extract")
+async def extract_form(request: ChatRequest):
+    """
+    Parallel endpoint to extract structured form data from the user's message.
+    """
+    if not request.message:
+        return {}
+        
+    extracted_data = await extract_form_details(request.message)
+    return extracted_data
