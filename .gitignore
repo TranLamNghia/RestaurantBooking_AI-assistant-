@@ -142,3 +142,6 @@ dmypy.json
 
 #temp file
 codesql.txt
+client/package.json
+package-lock.json
+package.json
