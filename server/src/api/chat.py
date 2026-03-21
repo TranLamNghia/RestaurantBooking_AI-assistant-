@@ -40,3 +40,18 @@ async def extract_form(request: ChatRequest):
         
     extracted_data = await extract_form_details(request.message)
     return extracted_data
+
+@router.post("/confirm")
+async def confirm_reservation(request: ChatRequest):
+    """
+    Endpoint to finalize reservation and send confirmation email.
+    Called when the guest types "Xác nhận" in the chat.
+    """
+    # TODO: Implement send email logic here
+    # Example:
+    # - Collect all form data from request
+    # - Generate QR code and Booking ID (SOL-XXXXXX)
+    # - Send confirmation email to guest
+    # - Save reservation to database
+    
+    return {"status": "confirmed", "message": "Reservation confirmed successfully."}

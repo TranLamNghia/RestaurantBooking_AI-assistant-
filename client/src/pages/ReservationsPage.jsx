@@ -187,7 +187,8 @@ export default function ReservationsPage() {
     })
     const [submitted, setSubmitted] = useState(false)
     const [alacarteTab, setAlacarteTab] = useState('food')        // 'food' | 'beverages'
-    const [alacarteSelected, setAlacarteSelected] = useState({})  // { [itemId]: numeric_price_index }
+    const [alacarteSelected, setAlacarteSelected] = useState({})  // { [`${itemId}__${priceIdx}`]: true }
+    const [alacarteQuantities, setAlacarteQuantities] = useState({})  // { [`${itemId}__${priceIdx}`]: number }
     const [isPreorderOpen, setIsPreorderOpen] = useState(false)
     const [openCategories, setOpenCategories] = useState([])
 
@@ -195,26 +196,73 @@ export default function ReservationsPage() {
         setOpenCategories(prev => prev.includes(catName) ? prev.filter(c => c !== catName) : [...prev, catName])
     }
 
-    // À la carte total
-    const alacarteItems = Object.keys(alacarteSelected).map(id => {
+    // Valid time options for the form select
+    const VALID_TIMES = ['11:30', '12:00', '12:30', '13:00', '13:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00']
+
+    const mapTimeToOption = (rawTime) => {
+        if (!rawTime) return ''
+        if (VALID_TIMES.includes(rawTime)) return rawTime
+        const parts = rawTime.split(':')
+        if (parts.length !== 2) return ''
+        const inputMin = parseInt(parts[0]) * 60 + parseInt(parts[1])
+        let closest = VALID_TIMES[0]
+        let minDiff = Infinity
+        for (const t of VALID_TIMES) {
+            const tp = t.split(':')
+            const tMin = parseInt(tp[0]) * 60 + parseInt(tp[1])
+            const diff = Math.abs(tMin - inputMin)
+            if (diff < minDiff) { minDiff = diff; closest = t }
+        }
+        return closest
+    }
+
+    // Match AI pre-order item name to actual menu items
+    const findMenuItemByName = (name) => {
+        const allItems = [...ALACARTE_FOOD, ...ALACARTE_BEVERAGES]
+        const lower = name.toLowerCase().trim()
+        let match = allItems.find(i => i.name.toLowerCase() === lower)
+        if (match) return match
+        match = allItems.find(i => i.name.toLowerCase().includes(lower) || lower.includes(i.name.toLowerCase()))
+        return match || null
+    }
+
+    // À la carte total — parse composite keys
+    const alacarteItems = Object.keys(alacarteSelected).map(compositeKey => {
+        const [id, pIdxStr] = compositeKey.split('__')
+        const priceIdx = parseInt(pIdxStr) || 0
         const item = [...ALACARTE_FOOD, ...ALACARTE_BEVERAGES].find(i => i.id === id)
         if (!item) return null
         const prices = item.price.split('/').map(p => p.trim())
-        const selectedPrice = prices[alacarteSelected[id]] || prices[0]
-        return { ...item, _selectedPriceStr: selectedPrice }
+        const selectedPrice = prices[priceIdx] || prices[0]
+        const qty = alacarteQuantities[compositeKey] || 1
+        return { ...item, _compositeKey: compositeKey, _selectedPriceStr: selectedPrice, _qty: qty, _priceIdx: priceIdx }
     }).filter(Boolean)
 
-    const alacarteTotal = alacarteItems.reduce((sum, item) => sum + parseInt(item._selectedPriceStr.replace(/\D/g, '') || '0'), 0)
+    const alacarteTotal = alacarteItems.reduce((sum, item) => {
+        const price = parseInt(item._selectedPriceStr.replace(/\D/g, '') || '0')
+        return sum + price * item._qty
+    }, 0)
 
     const toggleAlacarteItem = (id, priceIndex = 0) => {
+        const key = `${id}__${priceIndex}`
         setAlacarteSelected(prev => {
             const next = { ...prev }
-            if (next[id] === priceIndex) {
-                delete next[id]
+            if (next[key]) {
+                delete next[key]
+                setAlacarteQuantities(qp => { const nq = { ...qp }; delete nq[key]; return nq })
             } else {
-                next[id] = priceIndex
+                next[key] = true
+                setAlacarteQuantities(qp => ({ ...qp, [key]: qp[key] || 1 }))
             }
             return next
+        })
+    }
+
+    const updateQuantity = (compositeKey, delta) => {
+        setAlacarteQuantities(prev => {
+            const current = prev[compositeKey] || 1
+            const next = Math.max(1, current + delta)
+            return { ...prev, [compositeKey]: next }
         })
     }
 
@@ -263,24 +311,77 @@ export default function ReservationsPage() {
         }, 100)
     }, [aiStarted])
 
+    const confirmReservation = async () => {
+        // Call backend confirm endpoint (email sending is commented out on server)
+        try {
+            await fetch('http://127.0.0.1:5000/api/ai/chat/confirm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: 'confirm' })
+            })
+        } catch (e) { console.error('Confirm error:', e) }
+        setSubmitted(true)
+    }
+
     const sendAI = async (text) => {
         if (!text.trim()) return
-        const userMsg = { role: 'user', text: text.trim() }
+        const trimmed = text.trim()
+        const userMsg = { role: 'user', text: trimmed }
         setMessages(prev => [...prev, userMsg])
         setAiInput('')
         setIsTyping(true)
+
+        // Check if user is confirming
+        const isConfirm = trimmed.toLowerCase().replace(/[^a-zàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ\s]/g, '').trim()
+        if (isConfirm === 'xác nhận' || isConfirm === 'xac nhan' || isConfirm === 'confirm') {
+            setIsTyping(false)
+            setMessages(prev => [...prev, { role: 'ai', text: 'Your reservation has been confirmed! ✦ Our team will send a confirmation email with your Digital E-Ticket shortly. We look forward to welcoming you to Spice of Life.' }])
+            await confirmReservation()
+            return
+        }
 
         try {
             // Parallel AI Form Extraction (Fire and Forget)
             fetch('http://127.0.0.1:5000/api/ai/chat/extract', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text.trim() })
+                body: JSON.stringify({ message: trimmed })
             })
             .then(res => res.json())
             .then(data => {
                 if (data && Object.keys(data).length > 0) {
-                    setFormData(prev => ({ ...prev, ...data }));
+                    // Separate preorder from form fields
+                    const { preorder, time, ...formFields } = data
+                    
+                    // Map time to valid select option
+                    if (time) {
+                        formFields.time = mapTimeToOption(time)
+                    }
+                    
+                    // Update form data (without preorder)
+                    if (Object.keys(formFields).length > 0) {
+                        setFormData(prev => ({ ...prev, ...formFields }))
+                    }
+                    
+                    // Handle preorder items
+                    if (preorder && Array.isArray(preorder) && preorder.length > 0) {
+                        setIsPreorderOpen(true)
+                        preorder.forEach(orderItem => {
+                            const menuItem = findMenuItemByName(orderItem.name)
+                            if (menuItem) {
+                                const qty = orderItem.quantity || 1
+                                // Find the right price index if price_label is specified
+                                let priceIdx = 0
+                                if (orderItem.price_label) {
+                                    const prices = menuItem.price.split('/').map(p => p.trim())
+                                    const matchIdx = prices.findIndex(p => p.includes(orderItem.price_label.replace('$', '')))
+                                    if (matchIdx >= 0) priceIdx = matchIdx
+                                }
+                                setAlacarteSelected(prev => ({ ...prev, [`${menuItem.id}__${priceIdx}`]: true }))
+                                setAlacarteQuantities(prev => ({ ...prev, [`${menuItem.id}__${priceIdx}`]: qty }))
+                            }
+                        })
+                    }
                 }
             })
             .catch(err => console.error("AI Extraction Error:", err));
@@ -288,7 +389,7 @@ export default function ReservationsPage() {
             const res = await fetch('http://127.0.0.1:5000/api/ai/chat/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text.trim(), session_id: sessionId })
+                body: JSON.stringify({ message: trimmed, session_id: sessionId })
             });
             const data = await res.json();
 
@@ -316,6 +417,8 @@ export default function ReservationsPage() {
         setTimeout(() => {
             setSubmitted(false)
             setFormData({ name: '', email: '', phone: '', date: '', time: '', guests: '', space: '', occasion: '', notes: '' })
+            setAlacarteSelected({})
+            setAlacarteQuantities({})
         }, 4000)
     }
 
@@ -754,7 +857,7 @@ export default function ReservationsPage() {
                                     </div>
                                     {Object.keys(alacarteSelected).length > 0 && (
                                         <button type="button"
-                                            onClick={() => setAlacarteSelected({})}
+                                            onClick={() => { setAlacarteSelected({}); setAlacarteQuantities({}) }}
                                             style={{ fontFamily: "var(--font-display)", fontSize: "0.55rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(245,240,232,0.35)", background: "transparent", border: "1px solid rgba(245,240,232,0.15)", padding: "0.4rem 0.85rem", cursor: "pointer", flexShrink: 0, transition: "all 0.2s" }}
                                             onMouseEnter={e => { e.target.style.color = "rgba(245,240,232,0.7)"; e.target.style.borderColor = "rgba(245,240,232,0.35)" }}
                                             onMouseLeave={e => { e.target.style.color = "rgba(245,240,232,0.35)"; e.target.style.borderColor = "rgba(245,240,232,0.15)" }}
@@ -811,7 +914,8 @@ export default function ReservationsPage() {
 
                                                                 <div style={{ display: 'grid', gridTemplateColumns: alacarteTab === 'beverages' ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.1rem 1rem' }}>
                                                                     {itemsInSub.map(item => {
-                                                                        const isSel = alacarteSelected[item.id] !== undefined
+                                                                        // Check if ANY price of this item is selected
+                                                                        const isAnySel = Object.keys(alacarteSelected).some(k => k.startsWith(item.id + '__'))
                                                                         const prices = item.price.split('/').map(p => p.trim())
 
                                                                         let leftPriceIdx = null;
@@ -830,7 +934,8 @@ export default function ReservationsPage() {
                                                                         const renderPriceBtn = (pIdx) => {
                                                                             if (pIdx === null) return <div key={`empty_${pIdx}`} style={{ width: '4rem' }} />;
                                                                             const p = prices[pIdx];
-                                                                            const isPriceSel = isSel && alacarteSelected[item.id] === pIdx;
+                                                                            const compositeKey = `${item.id}__${pIdx}`
+                                                                            const isPriceSel = !!alacarteSelected[compositeKey]
                                                                             return (
                                                                                 <button key={pIdx} type="button" disabled={isFormLocked}
                                                                                     onClick={() => !isFormLocked && toggleAlacarteItem(item.id, pIdx)}
@@ -854,8 +959,8 @@ export default function ReservationsPage() {
                                                                                     onClick={() => !isFormLocked && toggleAlacarteItem(item.id, 0)}
                                                                                     style={{ flex: 1, background: 'transparent', border: 'none', cursor: isFormLocked ? 'default' : 'pointer', opacity: isFormLocked ? 0.5 : 1, textAlign: 'left', padding: 0 }}
                                                                                 >
-                                                                                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: isSel ? 'rgba(99,83,39,0.95)' : 'rgba(245,240,232,0.75)', textDecoration: isSel ? 'underline' : 'none', textDecorationColor: 'var(--color-gold)', textUnderlineOffset: '4px', lineHeight: 1.3, transition: 'color 0.18s' }}>
-                                                                                        {isSel && '✦ '}{item.name}
+                                                                                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: isAnySel ? 'var(--color-gold)' : 'rgba(245,240,232,0.75)', textDecorationLine: isAnySel ? 'underline' : 'none', textDecorationColor: 'var(--color-gold)', textUnderlineOffset: '4px', lineHeight: 1.3, transition: 'color 0.18s' }}>
+                                                                                        {isAnySel && '✦ '}{item.name}
                                                                                     </div>
                                                                                 </button>
 
@@ -900,10 +1005,19 @@ export default function ReservationsPage() {
                                         }}>
                                             <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.65rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.8)', marginBottom: '0.6rem' }}>Your Selection</div>
                                             {alacarteItems.map((item) => (
-                                                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', padding: '0.4rem 0', borderBottom: '1px dashed rgba(201,168,76,0.1)' }}>
-                                                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'var(--color-cream)' }}>{item.name}</span>
-                                                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--color-gold)', flexShrink: 0 }}>
-                                                        {item._selectedPriceStr}
+                                                <div key={item._compositeKey} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', padding: '0.4rem 0', borderBottom: '1px dashed rgba(201,168,76,0.1)' }}>
+                                                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'var(--color-cream)', flex: 1 }}>{item.name}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                                                        <button type="button" onClick={() => updateQuantity(item._compositeKey, -1)} disabled={isFormLocked}
+                                                            style={{ width: '24px', height: '24px', borderRadius: '3px', border: '1px solid rgba(201,168,76,0.3)', background: 'transparent', color: 'var(--color-gold)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                                                        >−</button>
+                                                        <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.8rem', color: 'var(--color-cream)', minWidth: '18px', textAlign: 'center' }}>{item._qty}</span>
+                                                        <button type="button" onClick={() => updateQuantity(item._compositeKey, 1)} disabled={isFormLocked}
+                                                            style={{ width: '24px', height: '24px', borderRadius: '3px', border: '1px solid rgba(201,168,76,0.3)', background: 'transparent', color: 'var(--color-gold)', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                                                        >+</button>
+                                                    </div>
+                                                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--color-gold)', flexShrink: 0, minWidth: '3.5rem', textAlign: 'right' }}>
+                                                        {item._qty > 1 ? `${item._qty}× ` : ''}{item._selectedPriceStr}
                                                     </span>
                                                 </div>
                                             ))}
