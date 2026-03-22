@@ -15,7 +15,7 @@ from src.ai_orchestrator.parser import ChatParser
 # Global memory saver for LangGraph checkpointer
 memory = MemorySaver()
 
-async def handle_user_message(db: Session, session_id: str, message: str) -> str:
+async def handle_user_message(db: Session, session_id: str, message: str, current_form: dict = None) -> str:
     """
     The main function of AI Agent using LangGraph.
     """
@@ -42,10 +42,16 @@ async def handle_user_message(db: Session, session_id: str, message: str) -> str
     tools = ToolRegistry.get_tools(db)
     
     # 3. Create Agent using LangGraph (replace the old deprecated AgentExecutor)
+    dynamic_prompt = SYSTEM_PROMPT
+    if current_form:
+        import json
+        form_str = json.dumps(current_form, indent=2, ensure_ascii=False)
+        dynamic_prompt += f"\n\n--- CURRENT FORM STATE (FILLED BY USER OR AI SO FAR) ---\n{form_str}\n"
+
     agent_executor = create_react_agent(
         model=llm,
         tools=tools,
-        prompt=SYSTEM_PROMPT,
+        prompt=dynamic_prompt,
         checkpointer=memory
     )
     

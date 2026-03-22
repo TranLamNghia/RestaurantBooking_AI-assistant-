@@ -12,10 +12,16 @@ RESTAURANT_KNOWLEDGE_BASE = """
 - **Contact**: +84 (0) 236 888 9999 (Randomly assigned for AI Concierge).
 
 ## 3. Operating Hours
-- **Daily**: 09:00 AM - 10:00 PM (Including weekends and public holidays).
-- **Breakfast/Brunch**: 09:00 AM - 11:30 AM.
-- **Lunch**: 11:30 AM - 15:00 PM.
-- **Dinner**: 17:30 PM - 22:00 PM (Last order at 21:15).
+- **Opening Hours (General)**: 09:00 AM - 10:00 PM daily (including weekends and public holidays).
+    → Guests can make reservations at ANY time within these hours.
+
+- **Recommended Dining Periods (For Best Experience Suggestion Only)**:
+    - **Breakfast/Brunch**: 09:00 AM - 11:30 AM (Light meals, relaxing morning atmosphere).
+    - **Lunch**: 11:30 AM - 14:00 PM (Ideal for business meals and daylight dining).
+    - **Afternoon / Flexible Hours**: 14:00 PM - 18:30 PM (Guests can still dine, suitable for tea, light meals, or flexible bookings).
+    - **Dinner**: 18:30 PM - 21:00 PM (Best ambiance with sunset and city lights).
+
+- **Last Order**: 21:15 PM.
 
 ## 4. Dining Spaces & Capacity
 - **Outdoor Veranda (Sea View)**: 1-4 guests. Fresh sea breeze, perfect for sunset watching. Table merging requires staff assistance.

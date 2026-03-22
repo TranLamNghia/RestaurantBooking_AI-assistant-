@@ -11,6 +11,7 @@ router = APIRouter()
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
+    current_form: Optional[dict] = None
 
 class ChatResponse(BaseModel):
     reply: str
@@ -23,7 +24,7 @@ async def chat_with_ai(request: ChatRequest, db: Session = Depends(get_db)):
         
     session_id = request.session_id or str(uuid.uuid4())
     
-    reply_text = await handle_user_message(db=db, session_id=session_id, message=request.message)
+    reply_text = await handle_user_message(db=db, session_id=session_id, message=request.message, current_form=request.current_form)
     
     return ChatResponse(
         reply=reply_text,
